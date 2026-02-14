@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>🔔 إعدادات التنبيهات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link id="bootstrapCSS" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body { font-family: 'Segoe UI', 'Cairo', sans-serif; background-color: #f4f6f9; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    header { background-color: #fff; padding: 10px 20px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; height: 60px; z-index: 1100; }
+    .app-title { display: flex; align-items: center; gap: 12px; font-size: 1.7rem; font-weight: 700; color: #2c3e50; user-select: none; }
+    .app-title i { font-size: 2rem; color: #0d6efd; }
+    #dateTime { color: #6c757d; font-size: 1rem; font-weight: 600; user-select: none; min-width: 220px; text-align: left; }
+    #langToggle { background: linear-gradient(135deg,#4dabf7,#0d6efd); border: none; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 8px; box-shadow: 0 4px 8px rgba(13,110,253,0.3); transition: background 0.3s ease; user-select: none; }
+    #langToggle:hover { background: linear-gradient(135deg,#0d6efd,#4dabf7); box-shadow: 0 6px 12px rgba(13,110,253,0.5); }
+    #hamburgerBtn { display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #0d6efd; user-select: none; }
+    .sidebar { position: fixed; top: 60px; right: 0; width: 240px; bottom: 0; background: #ffffff; border-left: 1px solid #dee2e6; padding: 20px 10px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; z-index: 1000; }
+    .sidebar a { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-weight: 600; font-size: 1rem; color: #2c3e50; border-radius: 12px; text-decoration: none; background: linear-gradient(145deg,#f0f4ff,#d9e3ff); box-shadow: 6px 6px 8px #b6c1f2, -6px -6px 8px #ffffff; transition: all 0.25s ease; user-select: none; }
+    .sidebar a i { font-size: 1.3rem; color: #0d6efd; flex-shrink: 0; }
+    .sidebar a:hover { background: linear-gradient(135deg,#a6c1ff,#4a7fff); color: #fff; box-shadow: 4px 4px 12px #3366ff, -4px -4px 12px #80aaff; }
+    .sidebar a.active { background: linear-gradient(135deg,#0d6efd,#74a9ff); color: #fff !important; box-shadow: 4px 4px 16px #003bb3, -4px -4px 16px #66a3ff; pointer-events: none; }
+    main#mainContent { margin-right: 240px; padding: 30px 25px; overflow-y: auto; background-color: #f4f6f9; flex-grow: 1; height: calc(100vh - 60px); }
+    @media (max-width: 992px) {
+      main#mainContent { margin-right: 0; padding: 20px 8px; }
+      .sidebar { width: 220px; transform: translateX(100%); box-shadow: -4px 0 8px rgba(0,0,0,0.15); position: fixed; }
+      .sidebar.open { transform: translateX(0); }
+      #hamburgerBtn { display: block; }
+      #dateTime { min-width: auto; font-size: 0.9rem; }
+    }
+    .alerts-section { background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px 18px; max-width: 600px; margin: 35px auto 0 auto; }
+    .alerts-section h2 { font-size: 1.25rem; font-weight: 700; color: #0d6efd; margin-bottom: 18px; text-align: center; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { font-weight: 600; color: #333; margin-bottom: 7px; display: block; }
+    .form-check-label { font-weight: 500; }
+    .success-msg { color: #198754; text-align: center; font-weight: 700; margin-top: 16px; }
+    .error-msg { color: #dc3545; text-align: center; font-weight: 700; margin-top: 16px; }
+    .inline-inputs { display: flex; gap: 10px; align-items: center; }
+    .inline-inputs input { width: 70px; }
+    .inline-inputs select { min-width: 80px; }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="قائمة التنقل"><i class="bi bi-list"></i></button>
+    <div id="dateTime">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill"></i> <span data-i18n="title">🛒 إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span data-i18n="switchLang">English</span></button>
+  </header>
+
+
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="index.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+
+  <main id="mainContent">
+    <form class="alerts-section" id="alertsForm">
+      <h2 data-i18n="alertsTitle">🔔 إعدادات التنبيهات</h2>
+      <div class="form-group">
+        <label class="form-label" data-i18n="alertTimeType">⏰ وقت التنبيه:</label>
+        <div>
+          <input type="radio" name="alertTimeType" id="atEnd" value="atEnd" checked>
+          <label for="atEnd" data-i18n="atEnd">عند وقت الانتهاء</label>
+        </div>
+        <div>
+          <input type="radio" name="alertTimeType" id="beforeEnd" value="beforeEnd">
+          <label for="beforeEnd" data-i18n="beforeEnd">قبل وقت الانتهاء بمدة</label>
+        </div>
+        <div id="beforeTimeInputs" style="display:none;margin-top:8px;">
+          <div class="inline-inputs">
+            <input type="number" id="beforeDays" min="0" placeholder="0" style="direction:ltr;">
+            <label data-i18n="day">يوم</label>
+            <input type="number" id="beforeHours" min="0" max="23" placeholder="0" style="direction:ltr;">
+            <label data-i18n="hour">ساعة</label>
+            <input type="number" id="beforeMinutes" min="0" max="59" placeholder="0" style="direction:ltr;">
+            <label data-i18n="minute">دقيقة</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="repeatType">🔁 تكرار التنبيه:</label>
+        <div>
+          <input type="radio" name="repeatType" id="repeatOnce" value="once" checked>
+          <label for="repeatOnce" data-i18n="repeatOnce">مرة واحدة فقط</label>
+        </div>
+        <div>
+          <input type="radio" name="repeatType" id="repeatUntilAction" value="untilAction">
+          <label for="repeatUntilAction" data-i18n="repeatUntilAction">تكرار حتى اتخاذ إجراء</label>
+        </div>
+        <div>
+          <input type="checkbox" id="repeatEveryDay" />
+          <label for="repeatEveryDay" data-i18n="repeatEveryDay">تكرار التنبيه يومياً بنفس الوقت</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="requireAction" checked />
+        <label for="requireAction" data-i18n="requireAction">عدم إيقاف التنبيه إلا باتخاذ إجراء</label>
+      </div>
+      <button type="submit" class="btn btn-success" data-i18n="save">💾 حفظ الإعدادات</button>
+      <div class="success-msg" id="successMsg" style="display:none"></div>
+      <div class="error-msg" id="errorMsg" style="display:none"></div>
+    </form>
+  </main>
+
+  <script>
+    // --- الترجمة وتحديث الوقت ---
+    const translations = {
+      ar: {
+        title: "🛒 إدارة المنتجات",
+        switchLang: "English",
+        "nav.sync": "تحديث البيانات",
+        "nav.showProducts": "عرض المنتجات",
+        "nav.addTimer": "إضافة مؤقت",
+        "nav.timerTable": "جدول المؤقتات",
+        "nav.productActions": "إجراءات المنتج",
+        "nav.printOptions": "خيارات الطباعة",
+        "nav.soundSettings": "إعدادات الصوت",
+        "nav.alerts": "إعدادات التنبيه",
+        "nav.reports": "التقارير",
+        alertsTitle: "🔔 إعدادات التنبيهات",
+        alertTimeType: "⏰ وقت التنبيه:",
+        atEnd: "عند وقت الانتهاء",
+        beforeEnd: "قبل وقت الانتهاء بمدة",
+        day: "يوم",
+        hour: "ساعة",
+        minute: "دقيقة",
+        repeatType: "🔁 تكرار التنبيه:",
+        repeatOnce: "مرة واحدة فقط",
+        repeatUntilAction: "تكرار حتى اتخاذ إجراء",
+        repeatEveryDay: "تكرار التنبيه يومياً بنفس الوقت",
+        requireAction: "عدم إيقاف التنبيه إلا باتخاذ إجراء",
+        save: "💾 حفظ الإعدادات",
+        success: "✅ تم حفظ إعدادات التنبيه بنجاح!",
+        error: "❌ يرجى تحديد وقت التنبيه بشكل صحيح.",
+      },
+      en: {
+        title: "🛒 Product Management",
+        switchLang: "العربية",
+        "nav.sync": "Sync Data",
+        "nav.showProducts": "Show Products",
+        "nav.addTimer": "Add Timer",
+        "nav.timerTable": "Timer Table",
+        "nav.productActions": "Product Actions",
+        "nav.printOptions": "Print Options",
+        "nav.soundSettings": "Sound Settings",
+        "nav.alerts": "Alerts Settings",
+        "nav.reports": "Reports",
+        alertsTitle: "🔔 Alerts Settings",
+        alertTimeType: "⏰ Alert time:",
+        atEnd: "At expiry time",
+        beforeEnd: "Before expiry by",
+        day: "day",
+        hour: "hour",
+        minute: "minute",
+        repeatType: "🔁 Alert repetition:",
+        repeatOnce: "Once only",
+        repeatUntilAction: "Repeat until action",
+        repeatEveryDay: "Repeat daily at same time",
+        requireAction: "Don't stop alert until action is taken",
+        save: "💾 Save Settings",
+        success: "✅ Alert settings saved successfully!",
+        error: "❌ Please specify alert time correctly.",
+      }
+    };
+
+    function applyTranslations() {
+      const lang = localStorage.getItem("appLang") || "ar";
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang][key]) el.placeholder = translations[lang][key];
+      });
+      // زر اللغة
+      const toggleBtnText = document.querySelector("#langToggle span");
+      toggleBtnText.textContent = translations[lang]["switchLang"];
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
+      const lang = localStorage.getItem("appLang") || "ar";
+      const locale = lang === "ar" ? "ar-EG" : "en-US";
+      const dateStr = now.toLocaleDateString(locale, options);
+      const timeStr = now.toLocaleTimeString(locale, timeOptions);
+      document.getElementById("dateTime").textContent = `🗓️ ${dateStr} - ⏰ ${timeStr}`;
+    }
+
+    function toggleLanguage() {
+      const curr = localStorage.getItem("appLang") || "ar";
+      const next = curr === "ar" ? "en" : "ar";
+      localStorage.setItem("appLang", next);
+      location.reload();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+
+      document.getElementById("langToggle").addEventListener("click", toggleLanguage);
+
+      // للهواتف: عرض القائمة الجانبية عند الضغط على الهامبرجر
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      const sidebar = document.querySelector(".sidebar");
+      hamburgerBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+      });
+
+      // إظهار/إخفاء خيارات قبل الانتهاء
+      document.getElementById("atEnd").addEventListener("change", toggleBeforeInputs);
+      document.getElementById("beforeEnd").addEventListener("change", toggleBeforeInputs);
+
+      // تحميل الإعدادات
+      loadAlertSettings();
+
+      document.getElementById("alertsForm").addEventListener("submit", saveAlertSettings);
+    });
+
+    function toggleBeforeInputs() {
+      const beforeInputs = document.getElementById("beforeTimeInputs");
+      beforeInputs.style.display = document.getElementById("beforeEnd").checked ? "block" : "none";
+    }
+
+    function saveAlertSettings(e) {
+      e.preventDefault();
+      const lang = localStorage.getItem("appLang") || "ar";
+      const alertType = document.querySelector('input[name="alertTimeType"]:checked').value;
+      let beforeMs = 0;
+      if (alertType === "beforeEnd") {
+        const days = parseInt(document.getElementById("beforeDays").value) || 0;
+        const hours = parseInt(document.getElementById("beforeHours").value) || 0;
+        const minutes = parseInt(document.getElementById("beforeMinutes").value) || 0;
+        beforeMs = ((days * 24 + hours) * 60 + minutes) * 60000;
+        if (beforeMs <= 0) {
+          showError("error");
+          return;
+        }
+      }
+      const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
+      const repeatEveryDay = document.getElementById("repeatEveryDay").checked;
+      const requireAction = document.getElementById("requireAction").checked;
+
+      const alertSettings = {
+        alertType,
+        beforeMs,
+        repeatType,
+        repeatEveryDay,
+        requireAction
+      };
+      localStorage.setItem('alertSettings', JSON.stringify(alertSettings));
+      showSuccess("success");
+    }
+
+    function loadAlertSettings() {
+      let alertSettings = {};
+      try { alertSettings = JSON.parse(localStorage.getItem('alertSettings') || '{}'); } catch { alertSettings = {}; }
+      if (alertSettings.alertType === "beforeEnd") {
+        document.getElementById("beforeEnd").checked = true;
+        document.getElementById("beforeTimeInputs").style.display = "block";
+        if (alertSettings.beforeMs) {
+          const totalMin = Math.floor(alertSettings.beforeMs / 60000);
+          const days = Math.floor(totalMin / 1440);
+          const hours = Math.floor((totalMin % 1440) / 60);
+          const minutes = totalMin % 60;
+          document.getElementById("beforeDays").value = days;
+          document.getElementById("beforeHours").value = hours;
+          document.getElementById("beforeMinutes").value = minutes;
+        }
+      } else {
+        document.getElementById("atEnd").checked = true;
+        document.getElementById("beforeTimeInputs").style.display = "none";
+      }
+      if (alertSettings.repeatType === "untilAction") {
+        document.getElementById("repeatUntilAction").checked = true;
+      } else {
+        document.getElementById("repeatOnce").checked = true;
+      }
+      document.getElementById("repeatEveryDay").checked = !!alertSettings.repeatEveryDay;
+      document.getElementById("requireAction").checked = alertSettings.requireAction !== false;
+    }
+
+    function showSuccess(key) {
+      const lang = localStorage.getItem("appLang") || "ar";
+      document.getElementById("successMsg").textContent = translations[lang][key];
+      document.getElementById("successMsg").style.display = "block";
+      document.getElementById("errorMsg").style.display = "none";
+      setTimeout(() => { document.getElementById("successMsg").style.display = "none"; }, 3000);
+    }
+    function showError(key) {
+      const lang = localStorage.getItem("appLang") || "ar";
+      document.getElementById("errorMsg").textContent = translations[lang][key];
+      document.getElementById("errorMsg").style.display = "block";
+      document.getElementById("successMsg").style.display = "none";
+      setTimeout(() => { document.getElementById("errorMsg").style.display = "none"; }, 3000);
+    }
+  </script>
+</body>
+</html>

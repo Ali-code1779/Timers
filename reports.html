@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>📈 التقارير - إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Cairo', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      overflow: hidden;
+      direction: rtl !important;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+      z-index: 1100;
+    }
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #2c3e50;
+      user-select: none;
+    }
+    .app-title i {
+      font-size: 2rem;
+      color: #0d6efd;
+    }
+    #dateTime {
+      color: #6c757d;
+      font-size: 1rem;
+      font-weight: 600;
+      user-select: none;
+      min-width: 220px;
+      text-align: left;
+    }
+    #langToggle {
+      background: linear-gradient(135deg, #4dabf7, #0d6efd);
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+      transition: background 0.3s ease;
+      direction: ltr;
+    }
+    #langToggle:hover {
+      background: linear-gradient(135deg, #0d6efd, #4dabf7);
+    }
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      right: 0;
+      width: 240px;
+      bottom: 0;
+      background: #ffffff;
+      border-left: 1px solid #dee2e6;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2c3e50;
+      border-radius: 12px;
+      text-decoration: none;
+      background: linear-gradient(145deg, #f0f4ff, #d9e3ff);
+      transition: all 0.25s ease;
+    }
+    .sidebar a.active {
+      background: linear-gradient(135deg, #4dabf7, #0d6efd);
+      color: white;
+    }
+    main#mainContent {
+      margin-right: 240px;
+      padding: 25px;
+      background-color: #f4f6f9;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    @media (max-width: 992px) {
+      main#mainContent {
+        margin-right: 0;
+      }
+      .sidebar {
+        width: 100%;
+        bottom: auto;
+        top: auto;
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+    }
+
+    /* تقرير */
+    .report-container {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      max-width: 100%;
+      margin-bottom: 30px;
+    }
+    .chart-box {
+      margin-bottom: 30px;
+    }
+
+    .data-table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background: white;
+    }
+    .data-table th,
+    .data-table td {
+      border: 1px solid #dee2e6;
+      padding: 10px;
+      text-align: center;
+    }
+    .data-table thead {
+      background: #e3f2fd;
+      color: #0d6efd;
+      font-weight: bold;
+    }
+
+    h2.section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0d6efd;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div id="dateTime">--:--</div>
+    <div class="app-title"><i class="bi bi-bar-chart-line-fill"></i> التقارير</div>
+    <button id="langToggle"><i class="bi bi-globe"></i> English</button>
+  </header>
+
+  <nav class="sidebar">
+    <a href="index.html"><i class="bi bi-house-door-fill"></i> 🏠 الرئيسية</a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i> 📦 عرض المنتجات</a>
+    <a href="add_timer.html"><i class="bi bi-clock-history"></i> ⏱️ إضافة مؤقت</a>
+    <a href="timer_table.html"><i class="bi bi-table"></i> 📋 جدول المؤقتات</a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i> ⚙️ إجراءات المنتج</a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i> 🖨️ الطباعة</a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i> 🔊 الصوت</a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i> 🔔 التنبيهات</a>
+    <a href="reports.html" class="active"><i class="bi bi-bar-chart-line-fill"></i> 📈 التقارير</a>
+  </nav>
+
+  <main id="mainContent">
+    <h2 class="section-title">📊 الإحصائيات العامة</h2>
+
+    <div class="report-container">
+      <div class="chart-box">
+        <canvas id="sectionChart" height="230"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="dailyChart" height="230"></canvas>
+      </div>
+
+      <h4 class="fw-bold mt-4 mb-3">📋 جدول المؤقتات</h4>
+      <table class="data-table" id="timersTable">
+        <thead>
+          <tr>
+            <th>القسم</th>
+            <th>المنتج</th>
+            <th>الكمية</th>
+            <th>⏳ الوقت المتبقي</th>
+            <th>📅 تاريخ الإضافة</th>
+            <th>📆 تاريخ الانتهاء</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- مكتبة Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  function formatRemaining(ms) {
+    if (ms <= 0) return "منتهي";
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600).toString().padStart(2, "0");
+    const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, "0");
+    const s = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function formatDateTime(ts) {
+    if (!ts) return "";
+    return new Date(ts).toLocaleString("ar-EG");
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+    const date = now.toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const time = now.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+    document.getElementById("dateTime").textContent = `🗓️ ${date} - ⏰ ${time}`;
+  }
+
+  document.getElementById("langToggle").addEventListener("click", () => {
+    const curr = localStorage.getItem("appLang") || "ar";
+    localStorage.setItem("appLang", curr === "ar" ? "en" : "ar");
+    location.reload();
+  });
+
+  function loadTimers() {
+    try {
+      return JSON.parse(localStorage.getItem("timers") || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function groupTimersBySection(timers) {
+    const counts = {};
+    timers.forEach(t => {
+      const sec = t.section || "بدون قسم";
+      counts[sec] = (counts[sec] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function groupTimersByDay(timers) {
+    const days = {};
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = d.toLocaleDateString("ar-EG", { weekday: 'short', day: 'numeric', month: 'numeric' });
+      days[key] = 0;
+    }
+
+    timers.forEach(t => {
+      const preparedDate = new Date(t.preparedTime);
+      const key = preparedDate.toLocaleDateString("ar-EG", { weekday: 'short', day: 'numeric', month: 'numeric' });
+      if (key in days) days[key]++;
+    });
+
+    return days;
+  }
+
+  function renderSectionChart(data) {
+    const ctx = document.getElementById("sectionChart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(data),
+        datasets: [{
+          label: "عدد المؤقتات",
+          backgroundColor: "#0d6efd",
+          data: Object.values(data)
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function renderDailyChart(data) {
+    const ctx = document.getElementById("dailyChart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: Object.keys(data),
+        datasets: [{
+          label: "عدد المؤقتات اليومية",
+          borderColor: "#f97316",
+          backgroundColor: "#fcd34d",
+          data: Object.values(data),
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function renderTimersTable(timers) {
+    const tbody = document.querySelector("#timersTable tbody");
+    tbody.innerHTML = "";
+    timers.forEach(t => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${t.section || ""}</td>
+        <td>${t.product || ""}</td>
+        <td>${t.quantity || 1}</td>
+        <td>${formatRemaining((t.expirationTime || 0) - Date.now())}</td>
+        <td>${formatDateTime(t.preparedTime)}</td>
+        <td>${formatDateTime(t.expirationTime)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    const timers = loadTimers();
+    renderSectionChart(groupTimersBySection(timers));
+    renderDailyChart(groupTimersByDay(timers));
+    renderTimersTable(timers);
+  });
+</script>
+</body>
+</html>

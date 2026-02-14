@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <title>📋 جدول المؤقتات - إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden !important; background: #f4f6f9;}
+    body { font-family: 'Segoe UI', 'Cairo', sans-serif; display: flex; flex-direction: column; height: 100vh; direction: ltr !important;}
+    header { background-color: #fff; padding: 10px 20px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; height: 60px; z-index: 1100; }
+    .app-title { display: flex; align-items: center; gap: 12px; font-size: 1.7rem; font-weight: 700; color: #2c3e50; user-select: none; }
+    .app-title i { font-size: 2rem; color: #0d6efd; }
+    #dateTime { color: #6c757d; font-size: 1rem; font-weight: 600; user-select: none; min-width: 220px; text-align: left; }
+    #langToggle { background: linear-gradient(135deg,#4dabf7,#0d6efd); border: none; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 8px; box-shadow: 0 4px 8px rgba(13,110,253,0.3); transition: background 0.3s ease; user-select: none; direction: ltr; }
+    #langToggle:hover { background: linear-gradient(135deg,#0d6efd,#4dabf7); box-shadow: 0 6px 12px rgba(13,110,253,0.5); }
+    #hamburgerBtn { display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #0d6efd; user-select: none; }
+    .sidebar { position: fixed; top: 60px; right: 0; width: 240px; bottom: 0; background: #ffffff; border-left: 1px solid #dee2e6; padding: 20px 10px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; box-shadow: inset 0 0 10px #e1e5eb; transition: transform 0.3s ease; z-index: 1000; }
+    .sidebar a { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-weight: 600; font-size: 1rem; color: #2c3e50; border-radius: 12px; text-decoration: none; background: linear-gradient(145deg,#f0f4ff,#d9e3ff); transition: all 0.25s ease; user-select: none; }
+    .sidebar a i { font-size: 1.3rem; color: #0d6efd; flex-shrink: 0; }
+    .sidebar a .emoji { font-size: 1.4rem; transition: transform 0.3s ease; user-select: none; flex-shrink: 0; }
+    .sidebar a:hover, .sidebar a.active { background: linear-gradient(135deg,#4a7fff,#a6c1ff); color: #fff; animation: pulse 0.6s ease; }
+    .sidebar a.active { pointer-events: none; }
+    .sidebar a:hover .emoji { animation: wiggle 0.4s ease-in-out; transform-origin: center bottom; }
+    main#mainContent { margin-right: 240px; padding: 0; background-color: #f4f6f9; flex-grow: 1; height: calc(100vh - 60px); display: flex; flex-direction: column; overflow: hidden;}
+    @media (max-width: 992px) {
+      main#mainContent { margin-right: 0; }
+      .sidebar { width: 220px; transform: translateX(100%); box-shadow: -4px 0 8px rgba(0,0,0,0.15); position: fixed; }
+      .sidebar.open { transform: translateX(0); }
+      #hamburgerBtn { display: block; }
+      #dateTime { min-width: auto; font-size: 0.9rem; }
+    }
+    .timers-table-section { background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); width: 100%; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding: 0;}
+    .timers-table-section h2 { font-size: 1.22rem; font-weight: 700; color: #0d6efd; margin: 0; padding: 18px 0 10px 0; text-align: center; border-bottom: 1px solid #e3e6ef; background: #f0f6ff;}
+    .sound-settings-bar {
+      background: #f0f4ff;
+      padding: 10px 18px 8px 18px;
+      border-bottom: 1px solid #e3e6ef;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      justify-content: flex-start;
+    }
+    .sound-settings-bar label { font-weight: 600; margin-left: 6px; }
+    .sound-settings-bar select, .sound-settings-bar input[type="number"] {
+      min-width: 80px;
+      border-radius: 8px;
+      border: 1.5px solid #b6d4fe;
+      padding: 4px 10px;
+      font-size: 1rem;
+    }
+    .sound-settings-bar button.preview-btn {
+      background: #fff;
+      color: #0d6efd;
+      border: 1px solid #0d6efd;
+      font-weight: bold;
+      border-radius: 7px;
+      padding: 3px 13px;
+      font-size: 1rem;
+      margin-right: 5px;
+    }
+    .sound-settings-bar button.preview-btn:hover { background: #0d6efd; color: #fff; }
+    .sound-settings-bar input[type="file"] { display: none; }
+    .sound-settings-bar .custom-file-label {
+      background: #e3f0ff;
+      color: #2563eb;
+      border-radius: 7px;
+      padding: 4px 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border: 1px solid #b6d4fe;
+      margin-right: 6px;
+      transition: background 0.2s;
+    }
+    .sound-settings-bar .custom-file-label:hover { background: #2563eb; color: #fff; }
+    .sound-settings-bar .uploaded-filename { font-size: 0.92rem; color: #0d6efd; font-weight: 600; margin-right: 8px;}
+    .category-toggle-bar {display: flex; align-items: center; gap: 10px; margin: 10px 0 0 0; padding: 0 18px;}
+    .category-toggle-bar .btn {font-weight: 600;}
+    .category-bar-container {display: none; flex-wrap: wrap; gap: 8px; padding: 10px 18px 0 18px; background: #f8fafc;}
+    .category-bar-container.visible {display: flex;}
+    .category-btn {background: #e3f0ff; color: #2563eb; border: none; border-radius: 8px; padding: 7px 20px; font-size: 1.02rem; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s;}
+    .category-btn.active, .category-btn:hover {background: #2563eb; color: #fff;}
+    .search-bar { margin: 10px 0 10px 0; display: flex; justify-content: flex-end; padding: 0 18px;}
+    .search-bar input { max-width: 320px; border-radius: 8px; border: 1.5px solid #b6d4fe; padding: 8px 14px; font-size: 1.08rem; }
+    .timers-table-wrap {
+      width: 100%;
+      flex-grow: 1;
+      max-height: calc(100vh - 60px - 70px - 56px - 40px);
+      overflow: auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 5px #e3f0ff;
+      margin-top: 0;
+    }
+    table.timers-table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      margin-bottom: 0;
+      table-layout: auto;
+    }
+    table.timers-table th, table.timers-table td {
+      padding: 10px 6px;
+      border: 1px solid #e3e6ef;
+      text-align: center;
+      background: #fff;
+      transition: width 0.2s;
+      font-size: clamp(0.75rem, 1vw, 1rem);
+    }
+    table.timers-table th {
+      background: #f0f6ff;
+      color: #0d6efd;
+      font-weight: 700;
+      white-space: normal !important;
+      word-break: break-word !important;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    table.timers-table td {
+      white-space: nowrap !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    table.timers-table th.action-col, table.timers-table td.action-col {
+      min-width: 220px;
+      max-width: 99vw;
+      width: auto;
+    }
+    .timers-table-wrap::-webkit-scrollbar {
+      height: 10px;
+      background: #e3f0ff;
+    }
+    .timers-table-wrap::-webkit-scrollbar-thumb {
+      background: #b6d4fe;
+      border-radius: 10px;
+    }
+    .action-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn-action {
+      flex: 1 1 60px;
+      min-width: 60px;
+      max-width: 100px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      transition: background 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-action.dispose { background: #e11d48; }
+    .btn-action.delete { background: #6c757d; }
+    .btn-action:hover { opacity: 0.85; }
+    table.timers-table td.expired { background: #f8d7da; color: #b71c1c; font-weight: 700; }
+    table.timers-table tr.active-row { background: #e8f7ff; }
+    .no-timers { color: #dc3545; font-weight: 600; text-align: center; margin-top: 20px; }
+    .success-msg, .error-msg { font-size: 1.2rem; font-weight: 700; text-align: center; margin-top: 18px; }
+    .success-msg { color: #22c55e; }
+    .error-msg { color: #e11d48; }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill"></i> <span data-key="appTitle">إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
+  </header>
+
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="home_timer.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+  <main id="mainContent">
+    <section class="timers-table-section">
+      <h2 data-key="timersTable">📋 جدول المؤقتات</h2>
+      <div class="sound-settings-bar" id="soundSettingsBar"></div>
+      <div class="category-toggle-bar">
+        <button id="toggleCategoriesBtn" class="btn btn-info"><i class="bi bi-list"></i> <span data-key="showSections">أقسام المنتجات</span></button>
+      </div>
+      <div class="category-bar-container" id="categoryBarContainer">
+        <div id="categoryButtonsContainer"></div>
+      </div>
+      <div class="success-msg" id="successMsg" style="display:none"></div>
+      <div class="error-msg" id="errorMsg" style="display:none"></div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 بحث..." oninput="renderTimersTable()" />
+      </div>
+      <div class="timers-table-wrap" id="timers-table-container"></div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+  <script>
+    // الأصوات الافتراضية + المرفوعة
+    const defaultSounds = [
+      { value: "beep", label: {ar:"صفارة قصيرة",en:"Beep"}, src: "https://cdn.pixabay.com/audio/2022/10/16/audio_12b5fae5e7.mp3" },
+      { value: "bell", label: {ar:"جرس",en:"Bell"}, src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "alert", label: {ar:"تنبيه",en:"Alert"}, src: "https://cdn.pixabay.com/audio/2022/11/16/audio_12c7c7f7c9.mp3" },
+      { value: "ding", label: {ar:"دينج",en:"Ding"}, src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" }
+    ];
+    let uploadedSounds = JSON.parse(localStorage.getItem("uploadedSounds")||"[]");
+    function getAllSounds() {
+      return [...defaultSounds, ...uploadedSounds];
+    }
+    let soundSettings = JSON.parse(localStorage.getItem("timerSoundSettings") || "{}");
+    let currentSection = "all";
+    let playingHowl = null;
+    let repeatInterval = null;
+    let currentLang = localStorage.getItem("appLang") || "ar";
+    let selectedSection = "all";
+    const translations = {
+      ar: {
+        appTitle: "إدارة المنتجات",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        langToggleText: "English",
+        timersTable: "📋 جدول المؤقتات",
+        remaining: "⏳ الوقت المتبقي",
+        section: "القسم",
+        product: "المنتج",
+        duration: "⏱️ المدة",
+        quantity: "🔢 الكمية",
+        prepared: "📅 وقت التجهيز",
+        expires: "📆 وقت الانتهاء",
+        action: "⚙️ الإجراء",
+        sell: "بيع",
+        dispose: "إتلاف",
+        delete: "حذف",
+        noTimers: "لا يوجد مؤقتات مسجلة.",
+        expired: "⛔",
+        deletePrompt: "ادخل كلمة المرور لحذف المؤقت:",
+        wrongPassword: "كلمة المرور غير صحيحة",
+        cannotSell: "⛔ لا يمكن بيع المنتج الآن. يجب إتلافه فوراً.",
+        sold: "✅ تم بيع المنتج.",
+        disposed: "✅ تم إتلاف المنتج.",
+        deleted: "✅ تم حذف المؤقت.",
+        execute: "تنفيذ",
+        allSections: "كل الأقسام",
+        sound: "نغمة التنبيه",
+        repeat: "عدد التكرار",
+        upload: "رفع نغمة...",
+        preview: "معاينة",
+        uploaded: "تم الرفع",
+        sectionLabel: "القسم:",
+        showSections: "أقسام المنتجات"
+      },
+      en: {
+        appTitle: "Product Management",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        langToggleText: "العربية",
+        timersTable: "📋 Timers Table",
+        remaining: "⏳ Time Left",
+        section: "Section",
+        product: "Product",
+        duration: "⏱️ Duration",
+        quantity: "🔢 Quantity",
+        prepared: "📅 Prepared At",
+        expires: "📆 Expires At",
+        action: "⚙️ Action",
+        sell: "Sell",
+        dispose: "Dispose",
+        delete: "Delete",
+        noTimers: "No timers registered.",
+        expired: "⛔",
+        deletePrompt: "Enter password to delete timer:",
+        wrongPassword: "Wrong password",
+        cannotSell: "⛔ Cannot sell the product now. It must be disposed of immediately.",
+        sold: "✅ Product sold.",
+        disposed: "✅ Product disposed.",
+        deleted: "✅ Timer deleted.",
+        execute: "Execute",
+        allSections: "All Sections",
+        sound: "Alert Sound",
+        repeat: "Repeat Count",
+        upload: "Upload Sound...",
+        preview: "Preview",
+        uploaded: "Uploaded",
+        sectionLabel: "Section:",
+        showSections: "Show Sections"
+      }
+    };
+
+    function renderSoundSettingsBar() {
+      const bar = document.getElementById('soundSettingsBar');
+      const sections = getSectionsFromTimers();
+      let html = `<label data-key="sectionLabel">${translations[currentLang].sectionLabel}</label>
+        <select id="soundSectionSelect" style="min-width:120px;">`;
+      html += `<option value="all">${translations[currentLang].allSections}</option>`;
+      sections.forEach(sec => {
+        html += `<option value="${sec}">${sec}</option>`;
+      });
+      html += `</select>
+        <label data-key="sound">${translations[currentLang].sound}:</label>
+        <select id="soundSelect"></select>
+        <label data-key="repeat">${translations[currentLang].repeat}:</label>
+        <input type="number" id="repeatInput" min="1" max="20" value="3" style="width:60px;" />
+        <button class="preview-btn" onclick="previewSound()" data-key="preview">${translations[currentLang].preview}</button>
+        <label for="uploadSoundInput" class="custom-file-label" data-key="upload">${translations[currentLang].upload}</label>
+        <input type="file" id="uploadSoundInput" accept="audio/*" />
+        <span class="uploaded-filename" id="uploadedFilename"></span>
+        <span id="soundSettingsSaved" style="color:#22c55e;font-weight:700;display:none;">✔️</span>
+      `;
+      bar.innerHTML = html;
+      renderSoundOptions();
+      document.getElementById('soundSectionSelect').value = currentSection;
+      loadSoundSettingsUI();
+      document.getElementById('soundSectionSelect').onchange = function() {
+        currentSection = this.value;
+        loadSoundSettingsUI();
+      };
+      document.getElementById('soundSelect').onchange = saveSoundSettingsUI;
+      document.getElementById('repeatInput').onchange = saveSoundSettingsUI;
+      document.getElementById('uploadSoundInput').onchange = uploadSoundFile;
+      updateUploadedFilename();
+      applyTranslations();
+    }
+    function renderSoundOptions() {
+      const select = document.getElementById('soundSelect');
+      select.innerHTML = "";
+      getAllSounds().forEach(s => {
+        select.innerHTML += `<option value="${s.value}">${s.label[currentLang] || s.label}</option>`;
+      });
+    }
+    function updateUploadedFilename() {
+      const sec = currentSection;
+      const set = soundSettings[sec] || {};
+      if (set.sound && set.sound.startsWith("uploaded_")) {
+        const sObj = uploadedSounds.find(s=>s.value===set.sound);
+        document.getElementById('uploadedFilename').textContent = sObj ? sObj.filename : '';
+      } else {
+        document.getElementById('uploadedFilename').textContent = '';
+      }
+    }
+    function loadSoundSettingsUI() {
+      renderSoundOptions();
+      const sec = currentSection;
+      const set = soundSettings[sec] || { sound: getAllSounds()[0].value, repeat: 3 };
+      document.getElementById('soundSelect').value = set.sound || getAllSounds()[0].value;
+      document.getElementById('repeatInput').value = set.repeat || 3;
+      updateUploadedFilename();
+    }
+    function saveSoundSettingsUI() {
+      const sec = currentSection;
+      soundSettings[sec] = {
+        sound: document.getElementById('soundSelect').value,
+        repeat: parseInt(document.getElementById('repeatInput').value)
+      };
+      localStorage.setItem("timerSoundSettings", JSON.stringify(soundSettings));
+      document.getElementById('soundSettingsSaved').style.display = "inline";
+      setTimeout(()=>{document.getElementById('soundSettingsSaved').style.display="none";},1200);
+      updateUploadedFilename();
+    }
+    window.previewSound = function() {
+      const val = document.getElementById('soundSelect').value;
+      const sObj = getAllSounds().find(s=>s.value===val) || getAllSounds()[0];
+      if (playingHowl) { playingHowl.stop(); playingHowl = null; }
+      playingHowl = new Howl({src:[sObj.src], volume:1});
+      playingHowl.play();
+    };
+    function uploadSoundFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const base64 = ev.target.result;
+        const id = "uploaded_" + Date.now();
+        uploadedSounds.push({
+          value: id,
+          label: {ar: file.name, en: file.name},
+          src: base64,
+          filename: file.name
+        });
+        localStorage.setItem("uploadedSounds", JSON.stringify(uploadedSounds));
+        renderSoundOptions();
+        document.getElementById('soundSelect').value = id;
+        saveSoundSettingsUI();
+      };
+      reader.readAsDataURL(file);
+    }
+    function playAlertSound(section) {
+      if (playingHowl) { playingHowl.stop(); playingHowl = null; }
+      if (repeatInterval) { clearTimeout(repeatInterval); repeatInterval = null; }
+      const set = soundSettings[section] || soundSettings["all"] || {sound:getAllSounds()[0].value,repeat:3};
+      const sObj = getAllSounds().find(s=>s.value===set.sound) || getAllSounds()[0];
+      let count = 0;
+      playingHowl = new Howl({src:[sObj.src], volume:1});
+      function playLoop() {
+        playingHowl.play();
+        count++;
+        if (set.repeat === 0 || count < set.repeat) {
+          repeatInterval = setTimeout(playLoop, 1300);
+        }
+      }
+      playLoop();
+    }
+    function stopAlertSound() {
+      if (playingHowl) { playingHowl.stop(); playingHowl = null; }
+      if (repeatInterval) { clearTimeout(repeatInterval); repeatInterval = null; }
+    }
+    function applyTranslations() {
+      const lang = currentLang;
+      document.querySelectorAll("[data-key]").forEach(el => {
+        const key = el.getAttribute("data-key");
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+      document.documentElement.lang = lang;
+      document.documentElement.dir = "ltr";
+      document.getElementById("searchInput").placeholder = lang==="ar" ? "🔍 بحث..." : "🔍 Search...";
+    }
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
+      const locale = currentLang === "ar" ? "ar-EG" : "en-US";
+      const dateStr = now.toLocaleDateString(locale, options);
+      const timeStr = now.toLocaleTimeString(locale, timeOptions);
+      document.getElementById("dateTime").textContent = `🗓️ ${dateStr} - ⏰ ${timeStr}`;
+    }
+    document.getElementById("langToggle").addEventListener("click", () => {
+      currentLang = currentLang === "ar" ? "en" : "ar";
+      localStorage.setItem("appLang", currentLang);
+      applyTranslations();
+      renderCategoryButtons();
+      renderSoundSettingsBar();
+      renderTimersTable();
+      updateDateTime();
+    });
+    function getTimersSorted() {
+      let timers = [];
+      try { timers = JSON.parse(localStorage.getItem('timers') || '[]'); } catch { timers = []; }
+      timers.sort((a, b) => (a.expirationTime || a.Expiry_Time) - (b.expirationTime || b.Expiry_Time));
+      return timers;
+    }
+    function getSectionsFromTimers() {
+      const timers = getTimersSorted();
+      const sections = new Set();
+      timers.forEach(t => {
+        if (t.section) sections.add(t.section);
+        else if (t.Section) sections.add(t.Section);
+      });
+      return Array.from(sections).sort();
+    }
+    function renderCategoryButtons() {
+      const container = document.getElementById('categoryButtonsContainer');
+      const lang = currentLang;
+      const sections = getSectionsFromTimers();
+      container.innerHTML = '';
+      const allBtn = document.createElement('button');
+      allBtn.textContent = translations[lang].allSections || 'كل الأقسام';
+      allBtn.className = 'category-btn';
+      if (selectedSection === "all") allBtn.classList.add("active");
+      allBtn.onclick = () => {
+        selectedSection = "all";
+        renderCategoryButtons();
+        renderTimersTable();
+      };
+      container.appendChild(allBtn);
+      sections.forEach(section => {
+        const btn = document.createElement('button');
+        btn.textContent = section;
+        btn.className = 'category-btn';
+        if (selectedSection === section) btn.classList.add("active");
+        btn.onclick = () => {
+          selectedSection = section;
+          renderCategoryButtons();
+          renderTimersTable();
+        };
+        container.appendChild(btn);
+      });
+    }
+    document.getElementById('toggleCategoriesBtn').addEventListener('click', () => {
+      const container = document.getElementById('categoryBarContainer');
+      container.classList.toggle('visible');
+    });
+    function renderTimersTable() {
+      const lang = currentLang;
+      const timers = getTimersSorted();
+      let filtered = timers;
+      if (selectedSection !== "all") {
+        filtered = filtered.filter(t =>
+          (t.section && t.section === selectedSection) ||
+          (t.Section && t.Section === selectedSection)
+        );
+      }
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      if (search) {
+        filtered = filtered.filter(t =>
+          (t.section && t.section.toLowerCase().includes(search)) ||
+          (t.product && t.product.toLowerCase().includes(search)) ||
+          (t.quantity && t.quantity.toString().includes(search))
+        );
+      }
+      filtered.sort((a, b) => (a.expirationTime || a.Expiry_Time) - (b.expirationTime || b.Expiry_Time));
+      let html = `<div class="table-responsive"><table class="timers-table"><thead><tr>
+        <th class="action-col" data-key="action">${translations[lang]["action"]}</th>
+        <th data-key="remaining">${translations[lang]["remaining"]}</th>
+        <th data-key="section">${translations[lang]["section"]}</th>
+        <th data-key="product">${translations[lang]["product"]}</th>
+        <th data-key="duration">${translations[lang]["duration"]}</th>
+        <th data-key="quantity">${translations[lang]["quantity"]}</th>
+        <th data-key="prepared">${translations[lang]["prepared"]}</th>
+        <th data-key="expires">${translations[lang]["expires"]}</th>
+      </tr></thead><tbody>`;
+      if (!filtered.length) {
+        html += `<tr><td colspan="8" class="no-timers" data-key="noTimers">${translations[lang]["noTimers"]}</td></tr>`;
+      } else {
+        filtered.forEach((t, i) => {
+          const remaining = (t.expirationTime || t.Expiry_Time) - Date.now();
+          const expired = remaining <= 0;
+          html += `<tr class="${!expired ? 'active-row' : ''}">
+            <td class="action-col">
+              <div class="action-btns">
+                <button class="btn-action" onclick="handleAction(${i},'sell')"><i class="bi bi-cash-coin"></i> ${translations[lang]["sell"]}</button>
+                <button class="btn-action dispose" onclick="handleAction(${i},'dispose')"><i class="bi bi-trash"></i> ${translations[lang]["dispose"]}</button>
+                <button class="btn-action delete" onclick="handleAction(${i},'delete')"><i class="bi bi-x-circle"></i> ${translations[lang]["delete"]}</button>
+              </div>
+            </td>
+            <td id="timer-${i}" class="${expired ? 'expired' : ''}" data-exp="${t.expirationTime || t.Expiry_Time}" data-alerted="0">${formatRemaining(remaining)}</td>
+            <td>${t.section || t.Section || ""}</td>
+            <td>${t.product || t.Product_Name_AR || t.Product_Name_EN || ""}</td>
+            <td>${t.duration || t.Preparation_Duration || ""}</td>
+            <td>${t.quantity || t.Quantity || ""}</td>
+            <td>${formatDateTime(t.preparedTime || t.Product_Time)}</td>
+            <td>${formatDateTime(t.expirationTime || t.Expiry_Time)}</td>
+          </tr>`;
+        });
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('timers-table-container').innerHTML = html;
+      applyTranslations();
+    }
+    let alertedTimers = {};
+    function updateTimersCountdown() {
+      const timers = getTimersSorted();
+      let filtered = timers;
+      if (selectedSection !== "all") {
+        filtered = filtered.filter(t =>
+          (t.section && t.section === selectedSection) ||
+          (t.Section && t.Section === selectedSection)
+        );
+      }
+      filtered.forEach((t, i) => {
+        const timerCell = document.getElementById(`timer-${i}`);
+        if (timerCell) {
+          const exp = t.expirationTime || t.Expiry_Time;
+          const remaining = exp - Date.now();
+          const expired = remaining <= 0;
+          if (expired && !alertedTimers[exp]) {
+            playAlertSound(t.section || t.Section || "all");
+            alertedTimers[exp] = true;
+            timerCell.dataset.alerted = "1";
+            timerCell.classList.add('expired');
+          }
+          timerCell.textContent = formatRemaining(remaining);
+        }
+      });
+    }
+    window.handleAction = function(i, action) {
+      stopAlertSound();
+      alertedTimers = {};
+      const lang = currentLang;
+      let timers = getTimersSorted();
+      let filtered = timers;
+      if (selectedSection !== "all") {
+        filtered = filtered.filter(t =>
+          (t.section && t.section === selectedSection) ||
+          (t.Section && t.Section === selectedSection)
+        );
+      }
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      if (search) {
+        filtered = filtered.filter(t =>
+          (t.section && t.section.toLowerCase().includes(search)) ||
+          (t.product && t.product.toLowerCase().includes(search)) ||
+          (t.quantity && t.quantity.toString().includes(search))
+        );
+      }
+      const t = filtered[i];
+      const idx = timers.findIndex(timer =>
+        timer.section === t.section &&
+        timer.product === t.product &&
+        timer.duration === t.duration &&
+        timer.quantity === t.quantity &&
+        timer.preparedTime === t.preparedTime &&
+        timer.expirationTime === t.expirationTime
+      );
+      const remaining = (t.expirationTime || t.Expiry_Time) - Date.now();
+
+      if (action === 'sell') {
+        if (remaining <= 300000) {
+          alert(translations[lang]["cannotSell"]);
+          return;
+        }
+        timers[idx].quantity--;
+        if (timers[idx].quantity <= 0) timers.splice(idx, 1);
+        alert(translations[lang]["sold"]);
+      }
+      else if (action === 'delete') {
+        const pwd = prompt(translations[lang]["deletePrompt"]);
+        if (pwd !== "123") {
+          alert(translations[lang]["wrongPassword"]);
+          return;
+        }
+        timers.splice(idx, 1);
+        alert(translations[lang]["deleted"]);
+      }
+      else if (action === 'dispose') {
+        timers[idx].quantity--;
+        if (timers[idx].quantity <= 0) timers.splice(idx, 1);
+        alert(translations[lang]["disposed"]);
+      }
+
+      localStorage.setItem('timers', JSON.stringify(timers));
+      renderCategoryButtons();
+      renderTimersTable();
+    };
+    function formatDateTime(ts) {
+      if (!ts) return "";
+      return new Date(ts).toLocaleString(currentLang === "ar" ? "ar-EG" : "en-US");
+    }
+    function formatRemaining(ms) {
+      let isNegative = ms < 0;
+      let totalSeconds = Math.abs(Math.floor(ms / 1000));
+      let hours = Math.floor(totalSeconds / 3600);
+      let minutes = Math.floor((totalSeconds % 3600) / 60);
+      let seconds = totalSeconds % 60;
+      let timeStr = `${hours.toString().padStart(2, '0')}:${minutes
+        .toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      return isNegative ? `-${timeStr}` : timeStr;
+    }
+    document.getElementById("hamburgerBtn").addEventListener("click", () => {
+      document.querySelector(".sidebar").classList.toggle("open");
+    });
+    document.addEventListener("click", (e) => {
+      const sidebar = document.querySelector(".sidebar");
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      if (sidebar && sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        sidebar.classList.remove("open");
+      }
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      updateDateTime();
+      setInterval(updateDateTime, 15000);
+      renderSoundSettingsBar();
+      renderCategoryButtons();
+      renderTimersTable();
+      setInterval(updateTimersCountdown, 1000);
+    });
+  </script>
+</body>
+</html>

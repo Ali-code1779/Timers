@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    id="bootstrapCSS"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px 20px 20px 20px;
+      margin: 0;
+      padding-top: 130px; /* مساحة فارغة أعلى لإتاحة مساحة للجزء العلوي الثابت */
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      z-index: 1050; /* أعلى من البوتستراب */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 15px 20px 10px 20px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    /* ألوان مختلفة حسب نوع الصفحة */
+    #btnActions {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    #btnActions:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    }
+
+    #btnAlerts {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+    #btnAlerts:hover {
+      background-color: #1e7e34;
+      border-color: #155d27;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    #btnSync {
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+    #btnSync:hover {
+      background-color: #117a8b;
+      border-color: #0c5e68;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+    }
+
+    #btnAddTimer {
+      background-color: #ffc107;
+      border-color: #ffc107;
+      color: #212529;
+    }
+    #btnAddTimer:hover {
+      background-color: #d39e00;
+      border-color: #a67d00;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+    }
+
+    #btnPrint {
+      background-color: #6f42c1;
+      border-color: #6f42c1;
+    }
+    #btnPrint:hover {
+      background-color: #4e2a8c;
+      border-color: #3a1f66;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(111, 66, 193, 0.4);
+    }
+
+    #btnShow {
+      background-color: #fd7e14;
+      border-color: #fd7e14;
+    }
+    #btnShow:hover {
+      background-color: #b35a0a;
+      border-color: #7f4006;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(253, 126, 20, 0.4);
+    }
+
+    #btnTimerTable {
+      background-color: #20c997;
+      border-color: #20c997;
+    }
+    #btnTimerTable:hover {
+      background-color: #13875a;
+      border-color: #0d5b3e;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
+    }
+
+    #btnSoundSettings {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+    #btnSoundSettings:hover {
+      background-color: #a71d2a;
+      border-color: #6e121a;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    }
+
+    #langToggle {
+      background-color: #343a40;
+      border-color: #343a40;
+      color: #fff;
+    }
+    #langToggle:hover {
+      background-color: #1d2124;
+      border-color: #121416;
+      color: #fff;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(52, 58, 64, 0.5);
+    }
+
+    /* تأثير عام على كل الأزرار عند المرور (يضاف للتأثيرات الخاصة) */
+    a.btn:hover,
+    button.btn:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* تحكم في حجم النص داخل الأزرار لتناسب الموبايل */
+    .btn-group-top .btn {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      min-width: 120px;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    /* تصميم صندوق الجدول */
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+    .table th,
+    .table td {
+      vertical-align: middle;
+      text-align: center;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    .dropdown-menu {
+      min-width: 100px;
+    }
+
+    /* تحسيــن تجاوب الموبايل */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px 10px 20px 10px;
+        padding-top: 160px;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+      }
+      .btn-group-top {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-group-top .btn {
+        width: 100%;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        min-width: auto;
+      }
+      .table th,
+      .table td {
+        font-size: 0.85rem;
+        padding: 6px 5px;
+      }
+    }
+    @media (max-width: 400px) {
+      h2 {
+        font-size: 1.3rem;
+      }
+      .btn-group-top .btn {
+        font-size: 0.9rem;
+        padding: 6px 8px;
+      }
+      .table th,
+      .table td {
+        font-size: 0.75rem;
+        padding: 4px 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 id="title">🛒 إدارة المنتجات</h2>
+    <div class="btn-group-top d-flex flex-wrap justify-content-center gap-2">
+      <a href="#" class="btn btn-primary" id="btnActions">إجراءات المنتجات 🛠️</a>
+      <a href="#" class="btn btn-primary" id="btnAlerts">إعدادات التنبيه 🔊</a>
+      <a href="#" class="btn btn-primary" id="btnSync">تحديث البيانات 📡</a>
+      <a href="#" class="btn btn-primary" id="btnAddTimer">إضافة مؤقت ➕</a>
+      <a href="#" class="btn btn-primary" id="btnPrint">خيارات الطباعة 🖨️</a>
+      <a href="#" class="btn btn-primary" id="btnShow">عرض المنتجات 👁️</a>
+      <a href="#" class="btn btn-primary" id="btnTimerTable">📄 جدول المؤقتات</a>
+      <a href="#" class="btn btn-primary" id="btnSoundSettings">🎵 إعدادات الصوت</a>
+      <button class="btn btn-primary" id="langToggle">English</button>
+    </div>
+  </header>
+
+  <div class="table-container">
+    <h5 class="text-center mb-3" id="tableTitle">📄 جدول المؤقتات</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead class="table-primary">
+          <tr>
+            <th id="thAction">الإجراء ⚙️</th>
+            <th id="thEnd">وقت الانتهاء 📅</th>
+            <th id="thStart">وقت التجهيز 📅</th>
+            <th id="thQty">الكمية 🔢</th>
+            <th id="thDuration">أمدة ⏱️</th>
+            <th id="thProduct">المنتج</th>
+            <th id="thSection">القسم</th>
+            <th id="thRemain">الوقت المتبقي ⏳</th>
+          </tr>
+        </thead>
+        <tbody id="productBody">
+          <tr>
+            <td>
+              <div class="dropdown">
+                <button
+                  class="btn btn-success dropdown-toggle action-btn"
+                  data-bs-toggle="dropdown"
+                >
+                  بيع
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item sale text-success" href="#">بيع</a></li>
+                  <li><a class="dropdown-item waste text-warning" href="#">إتلاف</a></li>
+                  <li><a class="dropdown-item delete text-danger" href="#">حذف</a></li>
+                </ul>
+              </div>
+            </td>
+            <td>٢٠٢٥/٦/١٣<br />٠٣:٣٨:٤٥ ص</td>
+            <td>٢٠٢٥/٦/١٢<br />٠٣:٣٨:٤٥ ص</td>
+            <td>6</td>
+            <td>2</td>
+            <td class="prod">Reglar Slice Cheese</td>
+            <td class="section">Preptation Table</td>
+            <td>❌</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dropdown">
+                <button
+                  class="btn btn-success dropdown-toggle action-btn"
+                  data-bs-toggle="dropdown"
+                >
+                  بيع
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item sale text-success" href="#">بيع</a></li>
+                  <li><a class="dropdown-item waste text-warning" href="#">إتلاف</a></li>
+                  <li><a class="dropdown-item delete text-danger" href="#">حذف</a></li>
+                </ul>
+              </div>
+            </td>
+            <td>٢٠٢٥/٦/١٣<br />٠٣:٣٨:٤٥ ص</td>
+            <td>٢٠٢٥/٦/١٢<br />٠٣:٣٨:٤٥ ص</td>
+            <td>6</td>
+            <td>2</td>
+            <td class="prod">Chicken Patties Grilled</td>
+            <td class="section">Thawing</td>
+            <td>⏳ 03:22:11</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const translations = {
+      ar: {
+        title: "🛒 إدارة المنتجات",
+        btnActions: "إجراءات المنتجات 🛠️",
+        btnAlerts: "إعدادات التنبيه 🔊",
+        btnSync: "تحديث البيانات 📡",
+        btnAddTimer: "إضافة مؤقت ➕",
+        btnPrint: "خيارات الطباعة 🖨️",
+        btnShow: "عرض المنتجات 👁️",
+        btnTimerTable: "📄 جدول المؤقتات",
+        btnSoundSettings: "🎵 إعدادات الصوت",
+        langToggle: "English",
+        tableTitle: "📄 جدول المؤقتات",
+        thAction: "الإجراء ⚙️",
+        thEnd: "وقت الانتهاء 📅",
+        thStart: "وقت التجهيز 📅",
+        thQty: "الكمية 🔢",
+        thDuration: "أمدة ⏱️",
+        thProduct: "المنتج",
+        thSection: "القسم",
+        thRemain: "الوقت المتبقي ⏳",
+        sale: "بيع",
+        waste: "إتلاف",
+        delete: "حذف",
+        products: {
+          "Reglar Slice Cheese": "جبنة شرائح عادية",
+          "Chicken Patties Grilled": "قطع دجاج مشوية",
+        },
+        sections: {
+          "Preptation Table": "طاولة التجهيز",
+          Thawing: "إذابة",
+        },
+      },
+      en: {
+        title: "🛒 Product Management",
+        btnActions: "Product Actions 🛠️",
+        btnAlerts: "Alert Settings 🔊",
+        btnSync: "Get the Data up To Date 📡",
+        btnAddTimer: "Add Timer ➕",
+        btnPrint: "Print Options 🖨️",
+        btnShow: "Show Products 👁️",
+        btnTimerTable: "📄 Timer Table",
+        btnSoundSettings: "🎵 Sound Settings",
+        langToggle: "عربي",
+        tableTitle: "📄 Timer Table",
+        thAction: "Action ⚙️",
+        thEnd: "End Time 📅",
+        thStart: "Start Time 📅",
+        thQty: "Quantity 🔢",
+        thDuration: "Duration ⏱️",
+        thProduct: "Product",
+        thSection: "Section",
+        thRemain: "Remaining Time ⏳",
+        sale: "Sell",
+        waste: "Waste",
+        delete: "Delete",
+        products: {
+          "جبنة شرائح عادية": "Reglar Slice Cheese",
+          "قطع دجاج مشوية": "Chicken Patties Grilled",
+        },
+        sections: {
+          "طاولة التجهيز": "Preptation Table",
+          "إذابة": "Thawing",
+        },
+      },
+    };
+
+    let currentLang = localStorage.getItem("language") || "ar";
+
+    function updateLanguage() {
+      const t = translations[currentLang];
+      document.documentElement.lang = currentLang;
+      document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+      document.getElementById("bootstrapCSS").href =
+        currentLang === "ar"
+          ? "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css"
+          : "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css";
+
+      for (const key in t) {
+        const el = document.getElementById(key);
+        if (el) el.textContent = t[key];
+      }
+
+      document.querySelectorAll(".action-btn").forEach((btn) =>
+        (btn.textContent = t.sale));
+      document.querySelectorAll(".sale").forEach((el) =>
+        (el.textContent = t.sale));
+      document.querySelectorAll(".waste").forEach((el) =>
+        (el.textContent = t.waste));
+      document.querySelectorAll(".delete").forEach((el) =>
+        (el.textContent = t.delete));
+
+      document.querySelectorAll(".prod").forEach((td) => {
+        const val = td.textContent.trim();
+        td.textContent = t.products[val] || val;
+      });
+      document.querySelectorAll(".section").forEach((td) => {
+        const val = td.textContent.trim();
+        td.textContent = t.sections[val] || val;
+      });
+
+      localStorage.setItem("language", currentLang);
+    }
+
+    document.getElementById("langToggle").onclick = () => {
+      currentLang = currentLang === "ar" ? "en" : "ar";
+      updateLanguage();
+    };
+
+    updateLanguage();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

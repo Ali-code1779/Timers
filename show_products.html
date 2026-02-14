@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>📦 عرض المنتجات - إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Cairo', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      direction: rtl !important;
+    }
+    header {
+      background-color: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+      z-index: 1100;
+    }
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #2c3e50;
+      user-select: none;
+    }
+    .app-title i {
+      font-size: 2rem;
+      color: #0d6efd;
+    }
+    #dateTime {
+      color: #6c757d;
+      font-size: 1rem;
+      font-weight: 600;
+      user-select: none;
+      min-width: 220px;
+      text-align: left;
+    }
+    #langToggle {
+      background: linear-gradient(135deg, #4dabf7, #0d6efd);
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+      transition: background 0.3s ease;
+      user-select: none;
+      direction: ltr;
+    }
+    #langToggle:hover {
+      background: linear-gradient(135deg, #0d6efd, #4dabf7);
+    }
+    #hamburgerBtn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #0d6efd;
+      direction: ltr;
+    }
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      right: 0;
+      width: 240px;
+      bottom: 0;
+      background: #ffffff;
+      border-left: 1px solid #dee2e6;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px #e1e5eb;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2c3e50;
+      border-radius: 12px;
+      text-decoration: none;
+      background: linear-gradient(145deg, #f0f4ff, #d9e3ff);
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+    .sidebar a i {
+      font-size: 1.3rem;
+      color: #0d6efd;
+      flex-shrink: 0;
+    }
+    .sidebar a .emoji {
+      font-size: 1.4rem;
+      transition: transform 0.3s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background: linear-gradient(135deg, #4a7fff, #a6c1ff);
+      color: #fff;
+      animation: pulse 0.6s ease;
+    }
+    .sidebar a.active {
+      pointer-events: none;
+    }
+    .sidebar a:hover .emoji {
+      animation: wiggle 0.4s ease-in-out;
+      transform-origin: center bottom;
+    }
+    main#mainContent {
+      margin-right: 240px;
+      padding: 30px 25px;
+      overflow-y: auto;
+      background-color: #f4f6f9;
+      flex-grow: 1;
+      height: calc(100vh - 60px);
+    }
+    @media (max-width: 992px) {
+      main#mainContent {margin-right: 0;}
+      .sidebar {transform: translateX(100%);}
+      .sidebar.open {transform: translateX(0);}
+      #hamburgerBtn {display: block;}
+    }
+    @keyframes pulse {0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); }}
+    @keyframes wiggle {0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(6deg); } 50% { transform: rotate(-6deg); } 75% { transform: rotate(4deg); }}
+    .category-bar-container {position: relative; width: 100%; max-height: 300px; margin-bottom: 8px; background: #e3f2fd; border-radius: 12px; box-shadow: inset 0 0 8px #b0c4de; padding: 10px 16px; display: none; flex-wrap: wrap; overflow-y: auto; gap: 10px; user-select: none; z-index: 1500;}
+    .category-bar-container.visible {display: flex;}
+    #categoryButtonsContainer {display: flex; flex-wrap: wrap; gap: 10px; width: 100%; justify-content: flex-start;}
+    #toggleCategoriesBtn {margin-bottom: 12px; align-self: flex-start; user-select: none;}
+    .main-toolbar {display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; justify-content: flex-start;}
+    .main-toolbar .form-control {width: 270px; max-width: 100%;}
+    .table-container { max-height: 500px; overflow-y: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px #e1e5eb42; padding: 0; margin-bottom: 0;}
+    table {width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 1rem; background: #fff;}
+    thead th {position: sticky; top: 0; background: #e3f2fd; border-bottom: 2px solid #1976d2; font-weight: 700; color: #0d47a1; text-align: center; padding: 10px 6px; font-size: 0.85rem; white-space: normal; word-break: break-word; user-select: none; overflow-wrap: break-word; max-width: 120px;}
+    tbody td {padding: 10px 6px; border: 1px solid #e3e6f0; text-align: center; vertical-align: middle; white-space: normal; word-break: break-word; overflow-wrap: break-word;}
+    .col-section {width: 220px; min-width: 180px; max-width: 280px;}
+    .col-product-ar, .col-product-en {width: 280px; min-width: 220px; max-width: 320px;}
+    .col-small {width: 90px; min-width: 70px; max-width: 110px; white-space: normal;}
+    textarea.editable-input {width: 100%; border: none; background: #e9f0ff; padding: 3px 6px; margin: 0; font-size: 1rem; font-family: inherit; border-radius: 7px; text-align: center; resize: vertical; min-height: 34px; overflow-wrap: break-word; white-space: pre-wrap; transition: font-size 0.1s;}
+    textarea.editable-input:focus {outline: 1.5px solid #1976d2; background: #e3f2fd;}
+    .btn-danger {font-weight: 600; padding: 4px 10px; font-size: 0.9rem;}
+    .btn-danger i {margin-left: 3px;}
+    @media (max-width: 700px) {
+      #categoryButtonsContainer button { font-size: 0.95rem; padding: 10px 6px; min-width: 55px; }
+      table { min-width: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime" aria-live="polite">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill"></i> <span data-key="appTitle">إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
+  </header>
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="index.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html" class="active" aria-current="page"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+  <main id="mainContent">
+    <div class="main-toolbar mb-3">
+      <input type="search" id="productSearchInput" class="form-control" aria-label="بحث المنتجات" placeholder="ابحث عن منتج..." autocomplete="off" />
+      <button id="toggleCategoriesBtn" class="btn btn-info"><i class="bi bi-list"></i> <span data-key="showSections">أقسام المنتجات</span></button>
+    </div>
+    <div class="category-bar-container hidden" aria-label="Filter by sections" role="region" aria-live="polite">
+      <div id="categoryButtonsContainer" tabindex="0" aria-label="Section filter buttons"></div>
+    </div>
+    <div id="appMessages" role="alert" aria-live="polite"></div>
+    <div class="table-container" id="productsTable" tabindex="0" aria-label="جدول المنتجات"></div>
+  </main>
+  <script>
+    // إعدادات Google Sheet
+    const API_URL = "https://script.google.com/macros/s/AKfycbyVSSPlJFT1ru3OWoOlqDzRr6lhBeiphl8GsMmN96kSPO_v5vtW28vQ-0O1LGLHDJTG/exec";
+    // الترجمة
+    const translations = {
+      ar: {
+        appTitle: "إدارة المنتجات",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        langToggleText: "English",
+        delete: "حذف",
+        confirmDelete: "تأكيد حذف المنتج؟",
+        deleted: "تم الحذف!",
+        cancel: "إلغاء",
+        noProducts: "لا توجد منتجات.",
+        searchPlaceholder: "ابحث عن منتج...",
+        done: "تم التحديث بنجاح!",
+        showSections: "أقسام المنتجات",
+        hideSections: "إخفاء الأقسام",
+        allSections: "كل الأقسام"
+      },
+      en: {
+        appTitle: "Product Management",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        langToggleText: "العربية",
+        delete: "Delete",
+        confirmDelete: "Confirm deleting the product?",
+        deleted: "Deleted!",
+        cancel: "Cancel",
+        noProducts: "No products.",
+        searchPlaceholder: "Search for a product...",
+        done: "Updated successfully!",
+        showSections: "Show Sections",
+        hideSections: "Hide Sections",
+        allSections: "All Sections"
+      }
+    };
+
+    let currentLang = localStorage.getItem("appLang") || "ar";
+    let allProducts = [];
+    let currentSection = "all";
+    let currentSearch = "";
+
+    function loadProductsAndSections() {
+      try { allProducts = JSON.parse(localStorage.getItem('products') || '[]'); } catch { allProducts = []; }
+    }
+    function getSectionName(p) {
+      if(currentLang === "ar") return p.Section_AR || p.Section || "";
+      return p.Section || p.Section_AR || "";
+    }
+    function getSectionsList() {
+      const set = new Set();
+      allProducts.forEach(p => {
+        let section = getSectionName(p);
+        if(section && section.trim() !== "") set.add(section);
+      });
+      return Array.from(set);
+    }
+    function getEmojiForSection(section) {
+      const s = section.toLowerCase();
+      if (s.includes("مشروب") || s.includes("drink")) return "🥤";
+      if (s.includes("قهوة") || s.includes("coffee")) return "☕";
+      if (s.includes("شاي") || s.includes("tea")) return "🍵";
+      if (s.includes("حلويات") || s.includes("dessert") || s.includes("cake")) return "🍰";
+      if (s.includes("مخبوز") || s.includes("bakery") || s.includes("خبز")) return "🥐";
+      if (s.includes("سلطة") || s.includes("salad")) return "🥗";
+      if (s.includes("شوربة") || s.includes("soup")) return "🍲";
+      if (s.includes("عصير") || s.includes("juice")) return "🧃";
+      if (s.includes("بيتزا") || s.includes("pizza")) return "🍕";
+      if (s.includes("ساندويتش") || s.includes("ساندوتش") || s.includes("sandwich")) return "🥪";
+      if (s.includes("لحوم") || s.includes("لحم") || s.includes("meat")) return "🥩";
+      if (s.includes("مشويات") || s.includes("grill")) return "🍖";
+      if (s.includes("بحري") || s.includes("seafood")) return "🦞";
+      if (s.includes("مكرونة") || s.includes("pasta")) return "🍝";
+      if (s.includes("فطور") || s.includes("breakfast")) return "🍳";
+      if (s.includes("خضار") || s.includes("خضروات") || s.includes("vegetable")) return "🥦";
+      if (s.includes("وجبات") || s.includes("snack")) return "🍪";
+      return "📦";
+    }
+    function getFilteredProducts() {
+      let products = [...allProducts];
+      if (currentSection !== "all") products = products.filter(p => getSectionName(p) === currentSection);
+      if (currentSearch && currentSearch.length > 0) {
+        const q = currentSearch.toLowerCase();
+        products = products.filter(p =>
+          Object.values(p).some(val =>
+            (val ?? "").toString().toLowerCase().includes(q)
+          )
+        );
+      }
+      return products;
+    }
+    function renderCategoryButtons() {
+      const container = document.getElementById('categoryButtonsContainer');
+      container.innerHTML = '';
+      const sections = getSectionsList();
+      const allBtn = document.createElement('button');
+      allBtn.textContent = translations[currentLang].allSections;
+      allBtn.className = 'btn btn-primary';
+      allBtn.dataset.category = 'all';
+      if (currentSection === "all") allBtn.classList.add("active");
+      allBtn.onclick = () => {
+        currentSection = "all";
+        renderCategoryButtons();
+        renderProductsTable();
+        hideCategoryButtonsContainer();
+      };
+      container.appendChild(allBtn);
+      sections.forEach(section => {
+        const emoji = getEmojiForSection(section);
+        const btn = document.createElement('button');
+        btn.innerHTML = `${emoji} ${section}`;
+        btn.className = 'btn btn-outline-primary';
+        btn.dataset.category = section;
+        if (currentSection === section) btn.classList.add("active");
+        btn.onclick = () => {
+          currentSection = section;
+          renderCategoryButtons();
+          renderProductsTable();
+          hideCategoryButtonsContainer();
+        };
+        container.appendChild(btn);
+      });
+    }
+    function renderProductsTable() {
+      const tableDiv = document.getElementById("productsTable");
+      const products = getFilteredProducts();
+      if (!products.length) {
+        tableDiv.innerHTML = `<div class="alert alert-warning mt-3">${translations[currentLang].noProducts}</div>`;
+        return;
+      }
+      let headers = ["Section"];
+      if (currentLang === "ar") headers.push("Product_Name_AR");
+      else headers.push("Product_Name_EN");
+      headers.push("Standard_Temp", "Preparation_Duration", "Time_Unit", "Manual_Expiry_Input", "Notes", "Delete");
+      let ths = headers.map(h => {
+        switch(h) {
+          case "Section": return `<th class="col-section" style="white-space:normal;word-break:break-word;">📂 ${currentLang==="ar"?"القسم":"Section"}</th>`;
+          case "Product_Name_AR": return `<th class="col-product-ar" style="white-space:normal;word-break:break-word;">📝 ${currentLang==="ar"?"اسم المنتج":"Product Name"}</th>`;
+          case "Product_Name_EN": return `<th class="col-product-en" style="white-space:normal;word-break:break-word;">📝 ${currentLang==="en"?"Product Name":"اسم المنتج"}</th>`;
+          case "Standard_Temp": return `<th class="col-small" style="white-space:normal;word-break:break-word;">🌡️ ${currentLang==="ar"?"درجة الحرارة":"Standard Temp"}</th>`;
+          case "Preparation_Duration": return `<th class="col-small" style="white-space:normal;word-break:break-word;">⏳ ${currentLang==="ar"?"مدة التحضير":"Preparation Duration"}</th>`;
+          case "Time_Unit": return `<th class="col-small" style="white-space:normal;word-break:break-word;">⏰ ${currentLang==="ar"?"الوحدة":"Time Unit"}</th>`;
+          case "Manual_Expiry_Input": return `<th class="col-small" style="white-space:normal;word-break:break-word;">✍️ ${currentLang==="ar"?"إدخال صلاحية يدوي":"Manual Expiry Input"}</th>`;
+          case "Notes": return `<th style="white-space:normal;word-break:break-word;">🗒️ ${currentLang==="ar"?"ملاحظات":"Notes"}</th>`;
+          case "Delete": return `<th style="white-space:normal;word-break:break-word;">🗑️ ${translations[currentLang].delete}</th>`;
+          default: return `<th style="white-space:normal;word-break:break-word;">${h}</th>`;
+        }
+      }).join("");
+      let trs = products.map((p, idx) => {
+        let cells = [];
+        cells.push(`<td class="col-section"><textarea class="editable-input" data-idx="${idx}" data-field="Section" rows="1" oninput="autoResize(this)">${p.Section??""}</textarea></td>`);
+        if(currentLang==="ar")
+          cells.push(`<td class="col-product-ar"><textarea class="editable-input" data-idx="${idx}" data-field="Product_Name_AR" rows="1" oninput="autoResize(this)">${p.Product_Name_AR??""}</textarea></td>`);
+        else
+          cells.push(`<td class="col-product-en"><textarea class="editable-input" data-idx="${idx}" data-field="Product_Name_EN" rows="1" oninput="autoResize(this)">${p.Product_Name_EN??""}</textarea></td>`);
+        cells.push(`<td class="col-small"><textarea class="editable-input" data-idx="${idx}" data-field="Standard_Temp" rows="1" oninput="autoResize(this)">${p.Standard_Temp??""}</textarea></td>`);
+        cells.push(`<td class="col-small"><textarea class="editable-input" data-idx="${idx}" data-field="Preparation_Duration" rows="1" oninput="autoResize(this)">${p.Preparation_Duration??""}</textarea></td>`);
+        cells.push(`<td class="col-small"><textarea class="editable-input" data-idx="${idx}" data-field="Time_Unit" rows="1" oninput="autoResize(this)">${p.Time_Unit??""}</textarea></td>`);
+        cells.push(`<td class="col-small"><textarea class="editable-input" data-idx="${idx}" data-field="Manual_Expiry_Input" rows="1" oninput="autoResize(this)">${p.Manual_Expiry_Input??""}</textarea></td>`);
+        cells.push(`<td><textarea class="editable-input" data-idx="${idx}" data-field="Notes" rows="1" oninput="autoResize(this)">${p.Notes??""}</textarea></td>`);
+        cells.push(`<td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.Product_Name_EN.replace(/'/g,"\\'")}')"><i class="bi bi-trash"></i> ${translations[currentLang].delete}</button></td>`);
+        return `<tr>${cells.join("")}</tr>`;
+      }).join("");
+      tableDiv.innerHTML = `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+      document.querySelectorAll(".editable-input").forEach(input => {
+        autoResize(input);
+        input.addEventListener("change", function() {
+          let idx = this.dataset.idx;
+          let field = this.dataset.field;
+          let newValue = this.value;
+          let p = getFilteredProducts()[idx];
+          let pwd = prompt(currentLang==="ar"?"ادخل كلمة المرور للتعديل:":"Enter password to edit:");
+          if (pwd !== "123") {
+            alert(currentLang==="ar"?"كلمة المرور غير صحيحة":"Wrong password");
+            this.value = p[field]??"";
+            autoResize(this);
+            return;
+          }
+          let params = new URLSearchParams();
+          params.append("action", "updateProduct");
+          params.append("Product_Name_EN", p.Product_Name_EN);
+          Object.keys(p).forEach(k => {
+            params.append(k, k===field ? newValue : p[k]);
+          });
+          fetch(API_URL + "?" + params, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+              if (data.result === "success") {
+                showAppMessage(currentLang==="ar"?"تم التحديث!":"Updated!", "success");
+                fetchProducts();
+              } else {
+                alert(data.error || "حدث خطأ!");
+              }
+            });
+        });
+      });
+    }
+
+    window.autoResize = function(textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = (textarea.scrollHeight) + "px";
+      let len = textarea.value.length;
+      if (len > 60) textarea.style.fontSize = "0.85rem";
+      else if (len > 35) textarea.style.fontSize = "0.92rem";
+      else textarea.style.fontSize = "1rem";
+    };
+
+    window.deleteProduct = function(productNameEN) {
+      let pwd = prompt(currentLang==="ar"?"ادخل كلمة المرور للحذف:":"Enter password to delete:");
+      if (pwd !== "123") {
+        alert(currentLang==="ar"?"كلمة المرور غير صحيحة":"Wrong password");
+        return;
+      }
+      if (!confirm(translations[currentLang].confirmDelete)) return;
+      let params = new URLSearchParams({ action: "deleteProduct", Product_Name_EN: productNameEN });
+      fetch(API_URL + "?" + params, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.result === "success") {
+            showAppMessage(translations[currentLang].deleted, "success");
+            fetchProducts();
+          } else {
+            alert(data.error || "حدث خطأ!");
+          }
+        });
+    };
+
+    document.getElementById("productSearchInput").addEventListener("input", function() {
+      currentSearch = this.value.trim();
+      renderProductsTable();
+    });
+
+    function hideCategoryButtonsContainer() {
+      const container = document.querySelector('.category-bar-container');
+      container.classList.remove('visible');
+      container.classList.add('hidden');
+      document.getElementById('productsTable').style.display = 'block';
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].showSections;
+    }
+    function showCategoryButtonsContainer() {
+      const container = document.querySelector('.category-bar-container');
+      container.classList.remove('hidden');
+      container.classList.add('visible');
+      document.getElementById('productsTable').style.display = 'none';
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].hideSections;
+    }
+    document.getElementById('toggleCategoriesBtn').addEventListener('click', () => {
+      const container = document.querySelector('.category-bar-container');
+      if (container.classList.contains('visible')) {
+        hideCategoryButtonsContainer();
+      } else {
+        showCategoryButtonsContainer();
+      }
+    });
+
+    function showAppMessage(msg, type = "success") {
+      const el = document.getElementById("appMessages");
+      el.innerHTML = `<div class="alert alert-${type} mb-2 py-2 px-3">${msg}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 2500);
+    }
+
+    document.getElementById("hamburgerBtn").addEventListener("click", () => {
+      document.querySelector(".sidebar").classList.toggle("open");
+    });
+    document.addEventListener("click", (e) => {
+      const sidebar = document.querySelector(".sidebar");
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        sidebar.classList.remove("open");
+      }
+    });
+
+    document.getElementById("langToggle").addEventListener("click", () => {
+      currentLang = currentLang === "ar" ? "en" : "ar";
+      localStorage.setItem("appLang", currentLang);
+      applyLanguage(currentLang);
+      renderCategoryButtons();
+      renderProductsTable();
+      updateDateTime();
+    });
+
+    function applyLanguage(lang) {
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+      document.getElementById("langText").textContent = translations[lang].langToggleText;
+      document.querySelectorAll("[data-key]").forEach(el => {
+        const key = el.getAttribute("data-key");
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+      document.getElementById("productSearchInput").placeholder = translations[lang].searchPlaceholder;
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[lang].showSections;
+      hideCategoryButtonsContainer();
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const locale = currentLang === "ar" ? 'ar-EG' : 'en-US';
+      const date = now.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const time = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+      document.getElementById("dateTime").textContent = `🗓️ ${date} - ⏰ ${time}`;
+    }
+
+    function fetchProducts() {
+      loadProductsAndSections();
+      renderCategoryButtons();
+      renderProductsTable();
+      fetch(`${API_URL}?action=getProducts`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            allProducts = data.filter(p => Object.values(p).some(v => v !== null && v !== ""));
+            localStorage.setItem('products', JSON.stringify(allProducts));
+            renderCategoryButtons();
+            renderProductsTable();
+          }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyLanguage(currentLang);
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      fetchProducts();
+    });
+  </script>
+</body>
+</html>

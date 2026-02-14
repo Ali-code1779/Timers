@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>🖨️ خيارات الطباعة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Cairo', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      direction: rtl !important;
+    }
+    header {
+      background-color: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+      z-index: 1100;
+    }
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #2c3e50;
+      user-select: none;
+    }
+    .app-title i {
+      font-size: 2rem;
+      color: #0d6efd;
+    }
+    #dateTime {
+      color: #6c757d;
+      font-size: 1rem;
+      font-weight: 600;
+      user-select: none;
+      min-width: 220px;
+      text-align: left;
+    }
+    #langToggle {
+      background: linear-gradient(135deg, #4dabf7, #0d6efd);
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+      transition: background 0.3s ease;
+      user-select: none;
+      direction: ltr;
+    }
+    #langToggle:hover {
+      background: linear-gradient(135deg, #0d6efd, #4dabf7);
+    }
+    #hamburgerBtn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #0d6efd;
+      direction: ltr;
+    }
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      right: 0;
+      width: 240px;
+      bottom: 0;
+      background: #ffffff;
+      border-left: 1px solid #dee2e6;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px #e1e5eb;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2c3e50;
+      border-radius: 12px;
+      text-decoration: none;
+      background: linear-gradient(145deg, #f0f4ff, #d9e3ff);
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+    .sidebar a i {
+      font-size: 1.3rem;
+      color: #0d6efd;
+      flex-shrink: 0;
+    }
+    .sidebar a .emoji {
+      font-size: 1.4rem;
+      transition: transform 0.3s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background: linear-gradient(135deg, #4a7fff, #a6c1ff);
+      color: #fff;
+      animation: pulse 0.6s ease;
+    }
+    .sidebar a.active { pointer-events: none; }
+    .sidebar a:hover .emoji { animation: wiggle 0.4s ease-in-out; transform-origin: center bottom; }
+    main#mainContent {
+      margin-right: 240px;
+      padding: 30px 25px;
+      overflow-y: auto;
+      background-color: #f4f6f9;
+      flex-grow: 1;
+      height: calc(100vh - 60px);
+    }
+    @media (max-width: 992px) {
+      main#mainContent { margin-right: 0; padding: 20px 15px; }
+      .sidebar { width: 220px; transform: translateX(100%); box-shadow: -4px 0 8px rgba(0,0,0,0.15); position: fixed; }
+      .sidebar.open { transform: translateX(0); }
+      #hamburgerBtn { display: block; }
+      #dateTime { min-width: auto; font-size: 0.9rem; }
+    }
+    .print-options-form {
+      max-width:600px;
+      margin:30px auto;
+      background:#fff;
+      padding:24px;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.07);
+    }
+    .print-options-form label {font-weight:600;}
+    .print-options-form button {
+      font-weight:600;
+      font-size:1rem;
+      border-radius:8px;
+      border:none;
+      padding:8px 22px;
+      margin:5px 0;
+      transition:background 0.2s;
+      background:#0d6efd;
+      color:#fff;
+    }
+    .print-options-form button.cancel {background:#dc3545;}
+    .print-options-form button:hover {opacity:0.9;}
+    .section-select {margin: 10px 0 20px 0;}
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill"></i> <span data-i18n="title">🛒 إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
+  </header>
+
+
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="index.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+
+  <main id="mainContent">
+    <h2 data-i18n="printOptionsTitle">📄 خيارات الطباعة</h2>
+    <form id="print-options-form" class="print-options-form">
+      <div class="section-select" id="sectionSelectDiv">
+        <label for="sectionSelect" style="margin-top:8px;" data-i18n="chooseSection">اختر القسم:</label>
+        <select id="sectionSelect" class="form-select" style="max-width:220px;display:inline-block;"></select>
+      </div>
+      <br>
+      <label><input type="radio" name="printOption" value="all" checked> <span data-i18n="printAll">🗂️ طباعة جدول المؤقتات كامل</span></label><br><br>
+      <label><input type="radio" name="printOption" value="active"> <span data-i18n="printActive">🔄 طباعة المؤقتات النشطة</span></label><br><br>
+      <label><input type="radio" name="printOption" value="product_labels"> <span data-i18n="printProductLabel">🏷️ طباعة ملصقات المنتجات النشطة</span></label><br><br>
+      <label><input type="radio" name="printOption" value="pdf"> <span data-i18n="exportPDF">📥 تصدير كملف PDF</span></label><br><br>
+      <label><input type="radio" name="printOption" value="excel"> <span data-i18n="exportExcel">📊 تصدير كملف Excel</span></label><br><br>
+      <div style="text-align:center;margin-top:15px;">
+        <button type="button" onclick="executePrintOptions()" data-i18n="proceed">✅ استمر</button>
+        <button type="button" class="cancel" onclick="window.location.href='timer_table.html'" data-i18n="cancel">❌ إلغاء</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // --- الترجمة وتحديث الوقت ---
+    const translations = {
+      ar: {
+        title: "🛒 إدارة المنتجات",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        switchLang: "English",
+        printOptionsTitle: "📄 خيارات الطباعة",
+        printAll: "🗂️ طباعة جدول المؤقتات كامل",
+        printActive: "🔄 طباعة المؤقتات النشطة",
+        printProductLabel: "🏷️ طباعة ملصقات المنتجات النشطة",
+        exportPDF: "📥 تصدير كملف PDF",
+        exportExcel: "📊 تصدير كملف Excel",
+        proceed: "✅ استمر",
+        cancel: "❌ إلغاء",
+        section: "القسم",
+        product: "المنتج",
+        duration: "⏱️ المدة",
+        quantity: "🔢 الكمية",
+        prepared: "📅 وقت التجهيز",
+        expires: "📆 وقت الانتهاء",
+        chooseSection: "اختر القسم:",
+        allSections: "كل الأقسام",
+        noActive: "لا يوجد مؤقتات نشطة.",
+        noSection: "لا يوجد مؤقتات في هذا القسم."
+      },
+      en: {
+        title: "🛒 Product Management",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        switchLang: "العربية",
+        printOptionsTitle: "📄 Print Options",
+        printAll: "🗂️ Print Full Timer Table",
+        printActive: "🔄 Print Active Timers",
+        printProductLabel: "🏷️ Print Product Labels",
+        exportPDF: "📥 Export as PDF",
+        exportExcel: "📊 Export as Excel",
+        proceed: "✅ Continue",
+        cancel: "❌ Cancel",
+        section: "Section",
+        product: "Product",
+        duration: "⏱️ Duration",
+        quantity: "🔢 Quantity",
+        prepared: "📅 Prepared At",
+        expires: "📆 Expires At",
+        chooseSection: "Choose Section:",
+        allSections: "All Sections",
+        noActive: "No active timers.",
+        noSection: "No timers in this section."
+      }
+    };
+
+    function applyTranslations() {
+      const lang = localStorage.getItem("appLang") || "ar";
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      document.getElementById("langText").textContent = translations[lang]["switchLang"];
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
+      const lang = localStorage.getItem("appLang") || "ar";
+      const locale = lang === "ar" ? "ar-EG" : "en-US";
+      const dateStr = now.toLocaleDateString(locale, options);
+      const timeStr = now.toLocaleTimeString(locale, timeOptions);
+      document.getElementById("dateTime").textContent = `🗓️ ${dateStr} - ⏰ ${timeStr}`;
+    }
+
+    function toggleLanguage() {
+      const curr = localStorage.getItem("appLang") || "ar";
+      const next = curr === "ar" ? "en" : "ar";
+      localStorage.setItem("appLang", next);
+      location.reload();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+
+      document.getElementById("langToggle").addEventListener("click", toggleLanguage);
+
+      // القائمة الجانبية للموبايل
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      const sidebar = document.querySelector(".sidebar");
+      hamburgerBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          sidebar.classList.remove("open");
+        }
+      });
+
+      renderSectionsDropdown();
+    });
+
+    // --- بيانات المؤقتات (من localStorage) ---
+    let timers = [];
+    try {
+      timers = JSON.parse(localStorage.getItem('timers') || '[]');
+    } catch { timers = []; }
+
+    function getSections() {
+      const set = new Set();
+      timers.forEach(t => { if (t.section) set.add(t.section); });
+      return Array.from(set).sort();
+    }
+
+    function renderSectionsDropdown() {
+      const lang = localStorage.getItem("appLang") || "ar";
+      const select = document.getElementById("sectionSelect");
+      select.innerHTML = `<option value="all">${translations[lang].allSections}</option>`;
+      getSections().forEach(sec => {
+        select.innerHTML += `<option value="${sec}">${sec}</option>`;
+      });
+    }
+
+    function formatDateTime(ts) {
+      const lang = localStorage.getItem("appLang") || "ar";
+      return new Date(ts).toLocaleString(lang === "ar" ? "ar-EG" : "en-US");
+    }
+
+    function filterBySection(data) {
+      const selectedSection = document.getElementById("sectionSelect").value;
+      if (selectedSection === "all") return data;
+      return data.filter(t => t.section === selectedSection);
+    }
+
+    function executePrintOptions() {
+      const selected = document.querySelector('input[name="printOption"]:checked');
+      if (!selected) {
+        alert(localStorage.getItem("appLang") === "ar" ? "يرجى اختيار إجراء واحد فقط." : "Please select one option.");
+        return;
+      }
+      const val = selected.value;
+      let filteredTimers = [];
+      if (val === 'all') {
+        filteredTimers = filterBySection(timers);
+        printTable(filteredTimers);
+      }
+      else if (val === 'active') {
+        filteredTimers = filterBySection(timers.filter(t => t.expirationTime > Date.now()));
+        printTable(filteredTimers);
+      }
+      else if (val === 'product_labels') {
+        filteredTimers = filterBySection(timers.filter(t => t.expirationTime > Date.now()));
+        printAllStickers(filteredTimers);
+      }
+      else if (val === 'pdf') {
+        filteredTimers = filterBySection(timers.filter(t => t.expirationTime > 0));
+        exportToPDF(filteredTimers);
+      }
+      else if (val === 'excel') {
+        filteredTimers = filterBySection(timers.filter(t => t.expirationTime > Date.now()));
+        exportToExcel(filteredTimers);
+      }
+    }
+
+    // طباعة جدول المؤقتات مع رأس الجدول
+    function printTable(data) {
+      let lang = localStorage.getItem("appLang") || "ar";
+      let sectionTitle = document.getElementById("sectionSelect").selectedOptions[0].textContent;
+      let html = `<h2 style='text-align:center'>${translations[lang]["printOptionsTitle"]} - ${sectionTitle}</h2>
+      <table border='1' style='width:100%; border-collapse:collapse; font-size:1rem'>
+        <tr>
+          <th>${translations[lang]["section"]}</th>
+          <th>${translations[lang]["product"]}</th>
+          <th>${translations[lang]["duration"]}</th>
+          <th>${translations[lang]["quantity"]}</th>
+          <th>${translations[lang]["prepared"]}</th>
+          <th>${translations[lang]["expires"]}</th>
+        </tr>`;
+      data.forEach(t => {
+        html += `<tr>
+          <td>${t.section || ""}</td>
+          <td>${t.product || ""}</td>
+          <td>${t.duration || ""}</td>
+          <td>${t.quantity || ""}</td>
+          <td>${formatDateTime(t.preparedTime)}</td>
+          <td>${formatDateTime(t.expirationTime)}</td>
+        </tr>`;
+      });
+      html += `</table>`;
+      const win = window.open('', '', 'height=700,width=900');
+      win.document.write('<html><head><title>' + translations[lang]["printOptionsTitle"] + '</title></head><body>' + html + '</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    // طباعة ملصقات جميع المنتجات النشطة (كل منتج بعدد الكمية)
+    function printAllStickers(filteredTimers) {
+      const lang = localStorage.getItem("appLang") || "ar";
+      if (filteredTimers.length === 0) return alert(lang === "ar" ? "لا يوجد مؤقتات نشطة." : "No active timers.");
+      let html = `
+        <html>
+        <head>
+          <title>Stickers</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; background: #fff; margin: 0; padding: 0.1in; }
+            .stickers-container {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.3cm 0.3cm;
+              justify-content: flex-start;
+              align-items: flex-start;
+            }
+            .sticker {
+              border: 2px solid #0d6efd;
+              border-radius: 10px;
+              padding: 0.19cm 0.23cm;
+              font-size: 9pt;
+              width: 6cm;
+              height: 2.5cm;
+              margin: 0;
+              box-sizing: border-box;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: flex-start;
+              background: #fff;
+              page-break-inside: avoid;
+              overflow: hidden;
+            }
+            .sticker div { margin: 0.07cm 0 0 0; white-space:nowrap; width:100%; }
+            .sticker strong { font-size: 9.5pt; color: #0d6efd;}
+          </style>
+        </head>
+        <body>
+        <div class="stickers-container">
+      `;
+      filteredTimers.forEach(t => {
+        for (let i = 0; i < t.quantity; i++) {
+          html += `
+            <div class="sticker">
+              <div><strong>${translations[lang]["section"]}:</strong> ${t.section || ""}</div>
+              <div><strong>${translations[lang]["product"]}:</strong> ${t.product || ""}</div>
+              <div><strong>${translations[lang]["prepared"]}:</strong> ${formatDateTime(t.preparedTime)}</div>
+              <div><strong>${translations[lang]["expires"]}:</strong> ${formatDateTime(t.expirationTime)}</div>
+            </div>
+          `;
+        }
+      });
+      html += `</div></body></html>`;
+      const win = window.open('', '', 'height=900,width=700');
+      win.document.write(html);
+      win.document.close();
+      win.print();
+    }
+
+    // تصدير PDF (جدول مع رأس الجدول)
+    function exportToPDF(data) {
+      let lang = localStorage.getItem("appLang") || "ar";
+      let sectionTitle = document.getElementById("sectionSelect").selectedOptions[0].textContent;
+      let html = `<h2 style='text-align:center'>${translations[lang]["printOptionsTitle"]} - ${sectionTitle}</h2>
+      <table border='1' style='width:100%; border-collapse:collapse; font-size:1rem'>
+        <tr>
+          <th>${translations[lang]["section"]}</th>
+          <th>${translations[lang]["product"]}</th>
+          <th>${translations[lang]["duration"]}</th>
+          <th>${translations[lang]["quantity"]}</th>
+          <th>${translations[lang]["prepared"]}</th>
+          <th>${translations[lang]["expires"]}</th>
+        </tr>`;
+      data.forEach(t => {
+        html += `<tr>
+          <td>${t.section || ""}</td>
+          <td>${t.product || ""}</td>
+          <td>${t.duration || ""}</td>
+          <td>${t.quantity || ""}</td>
+          <td>${formatDateTime(t.preparedTime)}</td>
+          <td>${formatDateTime(t.expirationTime)}</td>
+        </tr>`;
+      });
+      html += `</table>`;
+      const win = window.open('', '', 'height=700,width=900');
+      win.document.write('<html><head><title>' + translations[lang]["printOptionsTitle"] + '</title></head><body>' + html + '</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    // تصدير Excel كجدول أعمدة
+    function exportToExcel(data) {
+      const lang = localStorage.getItem("appLang") || "ar";
+      let table = `<table>
+        <tr>
+          <th>${translations[lang]["section"]}</th>
+          <th>${translations[lang]["product"]}</th>
+          <th>${translations[lang]["duration"]}</th>
+          <th>${translations[lang]["quantity"]}</th>
+          <th>${translations[lang]["prepared"]}</th>
+          <th>${translations[lang]["expires"]}</th>
+        </tr>`;
+      data.forEach(t => {
+        table += `<tr>
+          <td>${t.section || ""}</td>
+          <td>${t.product || ""}</td>
+          <td>${t.duration || ""}</td>
+          <td>${t.quantity || ""}</td>
+          <td>${formatDateTime(t.preparedTime)}</td>
+          <td>${formatDateTime(t.expirationTime)}</td>
+        </tr>`;
+      });
+      table += `</table>`;
+      const html = `<html><head><meta charset="UTF-8"></head><body>${table}</body></html>`;
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'timers.xls';
+      link.click();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>🔊 إعدادات الصوت</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', 'Cairo', sans-serif; background-color: #f4f6f9; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; direction: rtl !important;}
+    header { background-color: #fff; padding: 10px 20px; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; height: 60px; z-index: 1100;}
+    .app-title { display: flex; align-items: center; gap: 12px; font-size: 1.7rem; font-weight: 700; color: #2c3e50; user-select: none;}
+    .app-title i { font-size: 2rem; color: #0d6efd;}
+    #dateTime { color: #6c757d; font-size: 1rem; font-weight: 600; user-select: none; min-width: 220px; text-align: left;}
+    #langToggle { background: linear-gradient(135deg, #4dabf7, #0d6efd); border: none; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 8px; box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3); transition: background 0.3s ease; user-select: none; direction: ltr;}
+    #langToggle:hover { background: linear-gradient(135deg, #0d6efd, #4dabf7);}
+    #hamburgerBtn { display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #0d6efd; direction: ltr;}
+    .sidebar { position: fixed; top: 60px; right: 0; width: 240px; bottom: 0; background: #ffffff; border-left: 1px solid #dee2e6; padding: 20px 10px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; box-shadow: inset 0 0 10px #e1e5eb; transition: transform 0.3s ease; z-index: 1000;}
+    .sidebar a { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-weight: 600; font-size: 1rem; color: #2c3e50; border-radius: 12px; text-decoration: none; background: linear-gradient(145deg, #f0f4ff, #d9e3ff); transition: all 0.25s ease; user-select: none;}
+    .sidebar a i { font-size: 1.3rem; color: #0d6efd; flex-shrink: 0;}
+    .sidebar a .emoji { font-size: 1.4rem; transition: transform 0.3s ease; user-select: none; flex-shrink: 0;}
+    .sidebar a:hover, .sidebar a.active { background: linear-gradient(135deg, #4a7fff, #a6c1ff); color: #fff; animation: pulse 0.6s ease;}
+    .sidebar a.active { pointer-events: none; }
+    .sidebar a:hover .emoji { animation: wiggle 0.4s ease-in-out; transform-origin: center bottom; }
+    main#mainContent { margin-right: 240px; padding: 30px 25px; overflow-y: auto; background-color: #f4f6f9; flex-grow: 1; height: calc(100vh - 60px);}
+    .settings-section { max-width: 700px; margin: 30px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.07);}
+    .sections-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px;}
+    .section-btn { display: flex; align-items: center; gap: 8px; padding: 13px 20px; font-size: 1.08rem; font-weight: 700; background: #e8f0fe; border: 1.5px solid #0d6efd; color: #0d6efd; border-radius: 10px; cursor: pointer; transition: background 0.2s, color 0.2s; min-width: 160px; user-select: none;}
+    .section-btn:hover, .section-btn.active { background: #0d6efd; color: #fff;}
+    .sound-settings-form { margin-top: 20px; border: 1px solid #b6d4fe; border-radius: 10px; background: #f8fbff; padding: 18px 16px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; min-width: 320px; max-width: 95vw; box-shadow: 0 8px 32px #0002;}
+    .sound-settings-form label { font-weight: 600; margin-bottom: 5px; display: block; }
+    .sound-settings-form select, .sound-settings-form input[type="number"], .sound-settings-form input[type="time"] { width: 100%; padding: 7px 10px; margin-bottom: 12px; border-radius: 7px; border: 1px solid #b6d4fe; font-size: 1rem;}
+    .sound-settings-form button { background: #0d6efd; color: #fff; border: none; border-radius: 8px; padding: 8px 24px; font-weight: 700; font-size: 1rem; margin-top: 8px;}
+    .sound-settings-form button:hover { opacity: 0.9; }
+    .preview-btn { background: #fff; color: #0d6efd; border: 1px solid #0d6efd; font-weight: bold; border-radius: 7px; margin-right: 8px; padding: 3px 13px; font-size: 1rem;}
+    .preview-btn:hover { background: #0d6efd; color: #fff; }
+    .sound-modal-bg { position: fixed; inset: 0; background: #0003; z-index: 9998;}
+    .repeat-infinite-option {color: #e11d48; font-weight: bold;}
+    @media (max-width: 900px) { .sections-grid { gap: 8px; } .section-btn { min-width: 110px; font-size: 0.98rem; padding: 10px 8px; } }
+    @media (max-width: 700px) { main#mainContent { padding: 10px 2px; } .settings-section { padding: 10px 3px; } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(6deg); } 50% { transform: rotate(-6deg); } 75% { transform: rotate(4deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-volume-up-fill"></i> <span id="pageTitle">إعدادات الصوت</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
+  </header>
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="home_timer.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="index.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+  <main id="mainContent">
+    <div class="settings-section">
+      <h3 style="text-align:center;" id="soundSettingsTitle">🔊 إعدادات الصوت للأقسام</h3>
+      <button id="showSectionsBtn" class="btn btn-primary w-100 mb-3" type="button">
+        <i class="bi bi-list-ul"></i> <span id="showSectionsText">عرض الأقسام</span>
+      </button>
+      <div class="sections-grid" id="sectionsGrid"></div>
+    </div>
+  </main>
+  <script>
+    // الأقسام كما في جدولك
+    const sectionsList = [
+      {en: "Frozen items", ar: "العناصر المجمدة"},
+      {en: "Bakery Items", ar: "أصناف المخبوزات"},
+      {en: "Preparation Tables", ar: "جداول التحضير"},
+      {en: "Prepared Salads", ar: "السلطات المحضرة"},
+      {en: "Thawing products", ar: "منتجات إذابة الثلج"},
+      {en: "Secondary Expirations", ar: "انتهاء الصلاحية الثانوي"},
+      {en: "Chilled items", ar: "العناصر المبردة"},
+      {en: "Hand Sanitizer Timer", ar: "مؤقت معقم اليدين"},
+      {en: "Cleaning Items", ar: "أدوات التنظيف"},
+      {en: "Store Licenses", ar: "تراخيص المتاجر"},
+      {en: "Staff Health Card", ar: "بطاقة صحة الموظفين"},
+      {en: "Staff End Of Contract", ar: "نهاية عقد الموظفين"},
+      {en: "commissary Items", ar: "بنود المفوضية"},
+      {en: "Pepsi Items", ar: "منتجات بيبسي"},
+      {en: "Milk shake", ar: "اللبن المخفوق"},
+      {en: "ice cream", ar: "بوظة"},
+      {en: "cheese", ar: "جبن"},
+      {en: "Counter", ar: "عداد"},
+      {en: "Managers Tasks", ar: "مهام المديرين"},
+      {en: "Dry Items", ar: "المواد الجافة"}
+    ];
+
+    // الترجمة
+    const translations = {
+      ar: {
+        pageTitle: "إعدادات الصوت",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        soundSettingsTitle: "🔊 إعدادات الصوت للأقسام",
+        showSections: "عرض الأقسام",
+        save: "حفظ الإعدادات",
+        close: "إغلاق",
+        selectSound: "اختيار الصوت:",
+        repeat: "عدد مرات التكرار:",
+        repeatForever: "استمرار التكرار",
+        notifyTime: "موعد التنبيه (ساعة:دقيقة):",
+        preview: "معاينة",
+        saved: "تم حفظ إعدادات الصوت بنجاح!",
+        noSections: "لا يوجد أقسام متاحة.",
+        defaultSound: "الصوت الافتراضي"
+      },
+      en: {
+        pageTitle: "Sound Settings",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        soundSettingsTitle: "🔊 Sound Settings for Sections",
+        showSections: "Show Sections",
+        save: "Save Settings",
+        close: "Close",
+        selectSound: "Select Sound:",
+        repeat: "Repeat Count:",
+        repeatForever: "Repeat Forever",
+        notifyTime: "Notify Time (hh:mm):",
+        preview: "Preview",
+        saved: "Sound settings saved successfully!",
+        noSections: "No sections available.",
+        defaultSound: "Default Sound"
+      }
+    };
+
+    // مكتبة أصوات قوية (قصيرة وواضحة)
+    const sounds = [
+      { value: "beep", label: "Beep", src: "https://cdn.pixabay.com/audio/2022/10/16/audio_12b5fae5e7.mp3" },
+      { value: "bell", label: "Bell", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "alert", label: "Alert", src: "https://cdn.pixabay.com/audio/2022/11/16/audio_12c7c7f7c9.mp3" },
+      { value: "ding", label: "Ding", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "notify", label: "Notify", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "buzzer", label: "Buzzer", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "pop", label: "Pop", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" },
+      { value: "success", label: "Success", src: "https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b4cfa.mp3" }
+    ];
+
+    // تحميل جميع الأصوات للذاكرة عند بداية الصفحة
+    const howlsCache = {};
+    function preloadAllSounds() {
+      sounds.forEach(sound => {
+        howlsCache[sound.value] = new Howl({
+          src: [sound.src],
+          preload: true,
+          html5: false
+        });
+      });
+    }
+    preloadAllSounds();
+
+    let currentLang = localStorage.getItem("appLang") || "ar";
+    let infiniteInterval = null;
+    let previewHowl = null;
+
+    function applyLanguage(lang) {
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+      document.getElementById("langText").textContent = lang === "ar" ? "English" : "العربية";
+      document.getElementById("pageTitle").textContent = translations[lang].pageTitle;
+      document.getElementById("soundSettingsTitle").textContent = translations[lang].soundSettingsTitle;
+      document.getElementById("showSectionsText").textContent = translations[lang].showSections;
+      document.querySelectorAll("[data-key]").forEach(el => {
+        const key = el.getAttribute("data-key");
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+    }
+
+    function getSoundSettings() {
+      try { return JSON.parse(localStorage.getItem('soundSettings') || '{}'); } catch { return {}; }
+    }
+    function saveSoundSettings(settings) {
+      localStorage.setItem('soundSettings', JSON.stringify(settings));
+    }
+
+    function renderSectionsGrid() {
+      const grid = document.getElementById("sectionsGrid");
+      grid.innerHTML = "";
+      if (sectionsList.length === 0) {
+        grid.innerHTML = `<div class="alert alert-warning mt-2">${translations[currentLang].noSections}</div>`;
+        return;
+      }
+      sectionsList.forEach(sectionObj => {
+        const section = sectionObj[currentLang] || sectionObj.ar || sectionObj.en;
+        const btn = document.createElement('button');
+        btn.className = 'section-btn';
+        btn.type = "button";
+        btn.textContent = section;
+        btn.oncontextmenu = function(e) {
+          e.preventDefault();
+          showSoundSettings(section);
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    // نافذة إعدادات الصوت
+    function showSoundSettings(section) {
+      removeSoundModal();
+      const settings = getSoundSettings();
+      const secSettings = settings[section] || { sound: sounds[0].value, repeat: 1, time: "08:00" };
+      // خلفية مودال
+      const modalBg = document.createElement("div");
+      modalBg.className = "sound-modal-bg";
+      modalBg.onclick = removeSoundModal;
+      document.body.appendChild(modalBg);
+
+      // نافذة الإعدادات
+      const form = document.createElement("form");
+      form.className = "sound-settings-form";
+      form.onsubmit = function(e) { saveSectionSoundSettings(e, section); };
+      form.innerHTML = `
+        <h5 style="margin-bottom:18px;">🔊 ${translations[currentLang].soundSettingsTitle} <span style="color:#0d6efd">${section}</span></h5>
+        <label>${translations[currentLang].selectSound}</label>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <select name="sound" id="soundSelect" style="flex:1;">
+            ${sounds.map(s => `<option value="${s.value}" ${s.value === secSettings.sound ? 'selected' : ''}>${s.label}</option>`).join('')}
+          </select>
+          <button type="button" class="preview-btn" onclick="previewSound()">${translations[currentLang].preview}</button>
+        </div>
+        <label>${translations[currentLang].repeat}</label>
+        <select name="repeat" id="repeatSelect">
+          ${[...Array(10).keys()].map(i => `<option value="${i+1}" ${secSettings.repeat===(i+1)?'selected':''}>${i+1}</option>`).join('')}
+          <option value="infinite" class="repeat-infinite-option" ${secSettings.repeat==="infinite"?'selected':''}>${translations[currentLang].repeatForever} (∞)</option>
+        </select>
+        <label>${translations[currentLang].notifyTime}</label>
+        <input type="time" name="time" value="${secSettings.time}" required>
+        <div style="text-align:center;margin-top:10px;">
+          <button type="submit"><i class="bi bi-save"></i> ${translations[currentLang].save}</button>
+          <button type="button" class="btn btn-secondary ms-2" onclick="removeSoundModal()">${translations[currentLang].close}</button>
+        </div>
+      `;
+      document.body.appendChild(form);
+
+      // معاينة الصوت عند الوقوف أو التغيير
+      const select = form.querySelector('#soundSelect');
+      select.addEventListener('mousemove', function(e) {
+        const options = Array.from(this.options);
+        const rect = this.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const optionHeight = rect.height / options.length;
+        const idx = Math.floor(y / optionHeight);
+        if (options[idx]) {
+          playSound(options[idx].value);
+        }
+      });
+      select.addEventListener('change', function() {
+        playSound(this.value);
+      });
+      select.addEventListener('mouseleave', function() {
+        if (previewHowl) { previewHowl.stop(); previewHowl = null; }
+      });
+    }
+
+    window.removeSoundModal = function() {
+      document.querySelectorAll('.sound-modal-bg').forEach(e => e.remove());
+      document.querySelectorAll('.sound-settings-form').forEach(e => e.remove());
+      if (previewHowl) { previewHowl.stop(); previewHowl = null; }
+    };
+
+    // تشغيل الصوت فورياً من الذاكرة
+    function playSound(value) {
+      if (previewHowl) { previewHowl.stop(); previewHowl = null; }
+      if (howlsCache[value]) {
+        previewHowl = howlsCache[value];
+        previewHowl.stop();
+        previewHowl.volume(1);
+        previewHowl.play();
+      }
+    }
+    window.previewSound = function(val) {
+      const select = document.getElementById('soundSelect');
+      const value = val || (select ? select.value : sounds[0].value);
+      playSound(value);
+    };
+
+    window.saveSectionSoundSettings = function(e, section) {
+      e.preventDefault();
+      const form = e.target;
+      const sound = form.sound.value;
+      let repeat = form.repeat.value;
+      repeat = repeat === "infinite" ? "infinite" : parseInt(repeat, 10);
+      const time = form.time.value;
+      const settings = getSoundSettings();
+      settings[section] = { sound, repeat, time };
+      saveSoundSettings(settings);
+      removeSoundModal();
+      alert(translations[currentLang].saved);
+    };
+
+    function updateDateTime() {
+      const now = new Date();
+      const locale = currentLang === "ar" ? 'ar-EG' : 'en-US';
+      const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: false };
+      const dateStr = now.toLocaleDateString(locale, options);
+      const timeStr = now.toLocaleTimeString(locale, timeOptions);
+      document.getElementById("dateTime").textContent = `🗓️ ${dateStr} - ⏰ ${timeStr}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      applyLanguage(currentLang);
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+
+      document.getElementById("langToggle").addEventListener("click", function() {
+        currentLang = currentLang === "ar" ? "en" : "ar";
+        localStorage.setItem("appLang", currentLang);
+        applyLanguage(currentLang);
+        renderSectionsGrid();
+      });
+
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      const sidebar = document.querySelector(".sidebar");
+      hamburgerBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          sidebar.classList.remove("open");
+        }
+      });
+
+      document.getElementById("showSectionsBtn").onclick = renderSectionsGrid;
+      renderSectionsGrid();
+    });
+  </script>
+</body>
+</html>

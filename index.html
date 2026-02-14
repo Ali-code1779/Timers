@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>🛒 إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/howler"></script>
+  <style>
+    /* RESET & BASE */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      height: 100vh;
+      font-family: 'Segoe UI', 'Cairo', sans-serif;
+      background-color: #f4f6f9;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { text-decoration: none; color: inherit; }
+    /* HEADER */
+    header {
+      height: 60px; padding: 0 20px;
+      background-color: #fff;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 1100; user-select: none; gap: 10px; flex-wrap: nowrap;
+      position: sticky; top: 0;
+    }
+    #hamburgerBtn { display: none; background: none; border: none; font-size: clamp(1.2rem, 2vw, 1.8rem); cursor: pointer; color: #0d6efd; direction: ltr; flex-shrink: 0; user-select: none; transition: color 0.3s ease; }
+    #hamburgerBtn:hover, #hamburgerBtn:focus { color: #084298; outline: none; }
+    #dateTime { color: #6c757d; font-size: clamp(0.85rem, 1vw, 1rem); font-weight: 600; min-width: clamp(140px, 22vw, 240px); text-align: left; flex-shrink: 0; user-select: none; white-space: nowrap; margin: 0; line-height: 1.2; }
+    .app-title { display: flex; align-items: center; gap: clamp(10px, 1.2vw, 16px); font-size: clamp(1.3rem, 2vw, 2rem); font-weight: 700; color: #2c3e50; white-space: nowrap; user-select: none; margin: 0; line-height: 1.2; }
+    .app-title i { font-size: clamp(2rem, 3vw, 2.8rem); color: #0d6efd; filter: drop-shadow(0 1px 2px rgba(13,110,253,0.5)); transition: color 0.3s ease; }
+    #langToggle { background: linear-gradient(135deg, #4dabf7, #0d6efd); border: none; color: white; font-weight: 600; font-size: clamp(0.85rem, 1vw, 1.1rem); cursor: pointer; display: flex; align-items: center; gap: clamp(6px, 1vw, 10px); padding: clamp(6px, 1vw, 12px) clamp(12px, 2vw, 20px); border-radius: 12px; box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4); transition: background 0.35s, box-shadow 0.35s; user-select: none; direction: ltr; flex-shrink: 0; white-space: nowrap; outline-offset: 3px; outline-color: transparent; outline-style: solid; margin: 0; line-height: 1.2; }
+    #langToggle:hover, #langToggle:focus { background: linear-gradient(135deg, #0d6efd, #4dabf7); box-shadow: 0 8px 20px rgba(13, 110, 253, 0.6); outline-color: #0d6efd; outline-style: solid; outline-width: 2px; }
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed; top: 60px; right: 0;
+      width: 240px; bottom: 0; height: calc(100vh - 60px);
+      background: #ffffff;
+      border-left: 1px solid #dee2e6;
+      padding: 20px 10px;
+      display: flex; flex-direction: column; gap: 12px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px #e1e5eb;
+      transition: transform 0.3s;
+      z-index: 1000; user-select: none;
+      scrollbar-width: thin; scrollbar-color: #a6c1ff transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background-color: #a6c1ff; border-radius: 3px; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; font-weight: 600; font-size: 1rem; color: #2c3e50;
+      border-radius: 12px; text-decoration: none;
+      background: linear-gradient(145deg, #f0f4ff, #d9e3ff);
+      transition: all 0.25s; user-select: none; white-space: nowrap; flex-shrink: 0; box-shadow: 0 0 5px transparent;
+    }
+    .sidebar a i { font-size: 1.3rem; color: #0d6efd; flex-shrink: 0; filter: drop-shadow(0 1px 2px rgba(13,110,253,0.5)); transition: color 0.3s; }
+    .sidebar a .emoji { font-size: 1.4rem; transition: transform 0.3s; user-select: none; flex-shrink: 0; }
+    .sidebar a:hover, .sidebar a:focus { background: linear-gradient(135deg, #4a7fff, #a6c1ff); color: #fff; box-shadow: 0 4px 15px rgba(74,127,255,0.6); outline: none; }
+    .sidebar a:hover .emoji, .sidebar a:focus .emoji { animation: wiggle 0.5s ease-in-out; transform-origin: center bottom; }
+    .sidebar a.active { background: linear-gradient(135deg, #0d6efd, #4dabf7); color: #fff; box-shadow: 0 6px 20px rgba(13,110,253,0.7); }
+    /* MAIN CONTENT AREA */
+    main#mainContent {
+      margin-right: 240px;
+      padding: 30px 25px; overflow-y: auto;
+      background-color: #f4f6f9;
+      flex-grow: 1; height: calc(100vh - 60px); min-height: 300px; user-select: none;
+      scrollbar-width: thin; scrollbar-color: #a6c1ff transparent;
+    }
+    main#mainContent::-webkit-scrollbar { width: 8px; }
+    main#mainContent::-webkit-scrollbar-thumb { background-color: #a6c1ff; border-radius: 4px; }
+    h2.text-muted { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: clamp(15px, 2vw, 25px); color: #3a3f51; user-select: none; }
+    p.lead { font-size: clamp(1.1rem, 2vw, 1.4rem); margin-bottom: clamp(20px, 3vw, 30px); color: #555; max-width: 600px; user-select: none; }
+    /* FEATURE GRID */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: clamp(18px, 2vw, 30px); margin-top: clamp(20px, 3vw, 40px); user-select: none; justify-items: center; }
+    .feature-box {
+      position: relative; min-width: 160px; max-width: 260px; cursor: pointer; text-align: center; user-select: none; outline: none; border-radius: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid #e3e8f0; padding: 20px 16px 24px; transition: box-shadow 0.4s, border-color 0.4s, transform 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #2c3e50; font-weight: 600; font-size: clamp(1rem, 1.5vw, 1.2rem); user-select: text; overflow-wrap: break-word;
+    }
+    .feature-box:hover, .feature-box:focus { box-shadow: 0 12px 30px rgba(13,110,253,0.3); border-color: #0d6efd; color: #0d6efd; transform: translateY(-6px); text-decoration: none; outline: none; user-select: text; }
+    .feature-emoji { font-size: 4rem; margin-bottom: 12px; pointer-events: none; user-select: none; filter: drop-shadow(0 2px 6px rgba(13,110,253,0.3)); transition: transform 0.3s; }
+    .feature-box:hover .feature-emoji, .feature-box:focus .feature-emoji { transform: scale(1.15); }
+    .feature-title { margin: 0; white-space: normal; overflow: visible; max-width: 100%; user-select: text; font-weight: 700; letter-spacing: 0.5px; transition: color 0.4s; }
+    .feature-box .tooltip-text { visibility: hidden; width: 240px; background-color: #0d6efd; color: #fff; text-align: center; border-radius: 10px; padding: 12px 16px; position: absolute; z-index: 20; bottom: 110%; right: 50%; transform: translateX(50%); opacity: 0; transition: opacity 0.4s; font-size: 0.9rem; line-height: 1.4; user-select: text; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); white-space: normal; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
+    .feature-box .tooltip-text::after { content: ""; position: absolute; top: 100%; right: 50%; margin-right: -6px; border-width: 6px; border-style: solid; border-color: #0d6efd transparent transparent transparent; }
+    .feature-box:hover .tooltip-text, .feature-box:focus .tooltip-text { visibility: visible; opacity: 1; pointer-events: auto; }
+    /* CARDS GRID */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .card-box { background: white; border-radius: 12px; padding: 24px 20px; text-align: center; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); user-select: none; transition: transform .25s; }
+    .card-box:hover { transform: translateY(-6px); box-shadow: 0px 10px 25px rgba(13,110,253,0.2); }
+    .card-icon { font-size: 2.7rem; color: #0d6efd; margin-bottom: 12px; }
+    .card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; color: #0d6efd; }
+    .card-number { font-size: 2rem; font-weight: 900; user-select: text; color: #222; }
+    /* CHARTS */
+    .chart-box { margin-bottom: 45px; user-select: none; }
+    .row.chart-box > div { padding: 0 10px; }
+    /* TABLE */
+    table { user-select: text; }
+    .table thead.table-info th { background-color: #cfe2ff; color: #084298; text-align: center; font-weight: 700; user-select: none; }
+    tbody#mergedAlertsBody td { text-align: center; white-space: nowrap; }
+    tbody#mergedAlertsBody tr:hover { background: #f0f8ff; }
+    /* Responsive */
+    @media (max-width: 1200px) {
+      main#mainContent { margin-right: 200px; }
+      .sidebar { width: 200px; }
+      .features-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: clamp(15px, 2vw, 25px);}
+      .feature-box { min-width: 140px; max-width: 220px; font-size: clamp(0.95rem, 1.3vw, 1.1rem); padding: 16px 12px 20px;}
+      .feature-emoji { font-size: 3.5rem;}
+    }
+    @media (max-width:900px) {
+      main#mainContent { margin-right:0; padding: clamp(15px,2vw,25px); height: auto; overflow: visible;}
+      .sidebar { position: fixed; bottom:0; top:auto; right:0; width:100%; height:60px; padding:0 10px; flex-direction:row; align-items:center; overflow-x:auto; border-left:none; border-top:1px solid #dee2e6; box-shadow:0 -1px 5px rgba(0,0,0,0.1); z-index:1100;}
+      .sidebar a { flex:0 0 auto; padding:10px 12px; font-size:0.9rem; border-radius:8px;}
+      #hamburgerBtn { display:block;}
+      header { height:auto; padding:clamp(10px,2vw,15px); }
+      #dateTime { min-width: auto; flex-basis: 100%; text-align: center; margin-top: 5px;}
+    }
+    @media (max-width:768px) {
+      main#mainContent { margin-right: 0; padding: 15px 10px; }
+      .cards-grid { grid-template-columns: repeat(auto-fit, minmax(145px,1fr)); gap:12px;}
+      .card-box { padding:16px 14px;}
+      .card-icon { font-size:2.4rem; }
+    }
+    @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+    @keyframes wiggle { 0%,100% {transform: rotate(0deg);} 25% {transform: rotate(15deg);} 75%{transform:rotate(-15deg);} }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime" aria-live="polite">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill" aria-hidden="true"></i> <span data-key="appTitle">إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i><span id="langText">English</span></button>
+  </header>
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="home_timer.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span><span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span><span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span><span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span><span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span><span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span><span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span><span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span><span data-key="navReports">التقارير</span></a>
+  </nav>
+
+  <main id="mainContent" tabindex="0" role="main" aria-live="polite">
+    <h2 class="text-muted" data-key="welcome">مرحباً بك في لوحة التحكم</h2>
+    <p class="lead" data-key="welcomeDesc">يمكنك إدارة المنتجات والمؤقتات والإعدادات من القائمة الجانبية.</p>
+    <div class="features-grid" id="featuresGrid"></div>
+
+    <!-- Dashboard Quick Stats Cards -->
+    <h2 class="dashboard-title" id="dashboardTitle">📊 نظرة عامة سريعة</h2>
+    <div class="cards-grid mb-4" aria-label="بطاقات الإحصائيات">
+      <section class="card-box" role="region" aria-labelledby="totalProductsTitle">
+        <div class="card-icon"><i class="bi bi-box"></i></div>
+        <div id="totalProductsTitle" class="card-title">عدد المنتجات</div>
+        <div class="card-number" id="productsCount" aria-live="polite">--</div>
+      </section>
+      <section class="card-box" role="region" aria-labelledby="activeTimersTitle">
+        <div class="card-icon"><i class="bi bi-clock"></i></div>
+        <div id="activeTimersTitle" class="card-title">المؤقتات النشطة</div>
+        <div class="card-number" id="activeTimersCount" aria-live="polite">--</div>
+      </section>
+      <section class="card-box" role="region" aria-labelledby="alertsTitle">
+        <div class="card-icon"><i class="bi bi-bell"></i></div>
+        <div id="alertsTitle" class="card-title">التنبيهات القادمة</div>
+        <div class="card-number" id="alertsCount" aria-live="polite">--</div>
+      </section>
+    </div>
+
+    <!-- Dashboard Charts -->
+    <h3 class="dashboard-title" id="detailedStatsTitle">📊 إحصائيات تفصيلية</h3>
+    <div class="row chart-box">
+      <div class="col-md-6"><canvas id="productsBySection" aria-label="رسم بياني لعدد المنتجات حسب القسم" role="img"></canvas></div>
+      <div class="col-md-6"><canvas id="activeTimersBySection" aria-label="رسم بياني للمؤقتات النشطة حسب القسم" role="img"></canvas></div>
+    </div>
+    <div class="row chart-box">
+      <div class="col-12"><canvas id="timersLast7Days" aria-label="رسم بياني للمؤقتات خلال 7 أيام" role="img"></canvas></div>
+    </div>
+
+    <!-- Alerts Table -->
+    <h3 class="dashboard-title" id="todayAlertsTitle">🔔 تنبيهات اليوم (المؤقتات + التنبيهات)</h3>
+    <div class="table-responsive mb-5">
+      <table class="table table-bordered table-striped" aria-label="جدول التنبيهات">
+        <thead class="table-info text-center" id="timersTodayHeader">
+          <tr>
+            <th scope="col">القسم / النوع</th>
+            <th scope="col">المنتج</th>
+            <th scope="col">الوقت</th>
+            <th scope="col">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="text-center" id="mergedAlertsBody">
+          <tr><td colspan="4" aria-live="polite">جارٍ التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVSSPlJFT1ru3OWoOlqDzRr6lhBeiphl8GsMmN96kSPO_v5vtW28vQ-0O1LGLHDJTG/exec";
+    const alertHowl = new Howl({ src: ["https://cdn.pixabay.com/audio/2022/11/16/audio_12c7c7f7c9.mp3"], volume: 1 });
+
+    // Features data for main grid
+    const featuresData = {
+      ar: [
+        { emoji: "🏠", title: "الرئيسية", desc: "الانتقال إلى الصفحة الرئيسية للوحة التحكم والتي تعرض ملخص عام عن النظام.", url: "home_timer.html" },
+        { emoji: "📦", title: "عرض المنتجات", desc: "استعراض جميع المنتجات المسجلة مع إمكانية البحث أو تصفية المنتجات حسب القسم أو الاسم.", url: "show_products.html" },
+        { emoji: "⏱️", title: "إضافة مؤقت", desc: "إضافة مؤقت جديد لأي منتج مع تحديد القسم ومدة الصلاحية ووقت التجهيز.", url: "add_timer.html" },
+        { emoji: "📋", title: "جدول المؤقتات", desc: "جدول يعرض جميع المؤقتات الحالية والنشطة والمنتهية مع إمكانية التصفية والفرز.", url: "timer_table.html" },
+        { emoji: "⚙️", title: "إجراءات المنتج", desc: "تنفيذ إجراءات مثل تعديل أو حذف أو إعادة ضبط المؤقتات الخاصة بالمنتجات.", url: "actions_timers.html" },
+        { emoji: "🖨️", title: "خيارات الطباعة", desc: "طباعة جداول المؤقتات أو ملصقات المنتجات أو تصديرها كملفات PDF/Excel.", url: "print_options.html" },
+        { emoji: "🔊", title: "إعدادات الصوت", desc: "تخصيص أصوات التنبيه لكل قسم أو منتج مع إمكانية اختيار الصوت وموعد التنبيه والتكرار.", url: "sound_settings.html" },
+        { emoji: "🔔", title: "إعدادات التنبيه", desc: "ضبط إعدادات التنبيهات الخاصة بانتهاء المؤقتات أو المنتجات حسب تفضيلاتك.", url: "alerts.html" },
+        { emoji: "📈", title: "التقارير", desc: "عرض تقارير مفصلة عن المنتجات والمؤقتات والإجراءات المنفذة خلال فترة زمنية محددة.", url: "reports.html" }
+      ],
+      en: [
+        { emoji: "🏠", title: "Home", desc: "Go to the dashboard home page, which shows a general summary of the system.", url: "home_timer.html" },
+        { emoji: "📦", title: "Show Products", desc: "View all registered products with search and filter by section or name.", url: "show_products.html" },
+        { emoji: "⏱️", title: "Add Timer", desc: "Add a new timer for any product, specifying section, expiry duration, and preparation time.", url: "add_timer.html" },
+        { emoji: "📋", title: "Timer Table", desc: "Display all current, active, and expired timers with filtering and sorting options.", url: "timer_table.html" },
+        { emoji: "⚙️", title: "Product Actions", desc: "Perform actions like edit, delete, or reset timers for products.", url: "actions_timers.html" },
+        { emoji: "🖨️", title: "Print Options", desc: "Print timer tables or product labels, or export as PDF/Excel files.", url: "print_options.html" },
+        { emoji: "🔊", title: "Sound Settings", desc: "Customize alert sounds for each section or product, with sound choice, time, and repeat.", url: "sound_settings.html" },
+        { emoji: "🔔", title: "Alerts Settings", desc: "Configure alert settings for expired timers or products as you prefer.", url: "alerts.html" },
+        { emoji: "📈", title: "Reports", desc: "View detailed reports on products, timers, and actions performed over a set period.", url: "reports.html" }
+      ]
+    };
+
+    const translations = {
+      ar: {
+        appTitle: "إدارة المنتجات",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        langToggleText: "English",
+        welcome: "مرحباً بك في لوحة التحكم",
+        welcomeDesc: "يمكنك إدارة المنتجات والمؤقتات والإعدادات من القائمة الجانبية.",
+        dashboardTitle: "📊 نظرة عامة سريعة",
+        totalProducts: "عدد المنتجات",
+        activeTimers: "المؤقتات النشطة",
+        upcomingAlerts: "التنبيهات القادمة",
+        detailedStats: "📊 إحصائيات تفصيلية",
+        timersToday: "🔔 تنبيهات اليوم (المؤقتات + التنبيهات)",
+        section: "القسم / النوع",
+        product: "المنتج",
+        time: "الوقت",
+        status: "الحالة",
+        resolved: "تم المعالجة",
+        active: "⏳ نشط",
+        expired: "🛑 منتهي",
+        noData: "لا توجد بيانات"
+      },
+      en: {
+        appTitle: "Product Management",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        langToggleText: "العربية",
+        welcome: "Welcome to the Dashboard",
+        welcomeDesc: "You can manage products, timers, and settings from the sidebar.",
+        dashboardTitle: "📊 Quick Overview",
+        totalProducts: "Total Products",
+        activeTimers: "Active Timers",
+        upcomingAlerts: "Upcoming Alerts",
+        detailedStats: "📊 Detailed Statistics",
+        timersToday: "🔔 Today's Alerts (Timers + Alerts)",
+        section: "Section / Type",
+        product: "Product",
+        time: "Time",
+        status: "Status",
+        resolved: "Resolved",
+        active: "⏳ Active",
+        expired: "🛑 Expired",
+        noData: "No Data Available"
+      }
+    };
+
+    let currentLang = localStorage.getItem("appLang") || "ar";
+
+    function applyLanguage(lang = currentLang) {
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+      // Header translation
+      document.getElementById("langText").textContent = translations[lang].langToggleText;
+      document.querySelectorAll("[data-key]").forEach(el => {
+        const key = el.getAttribute("data-key");
+        if (translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      // Dashboard translation
+      document.getElementById("dashboardTitle").textContent = translations[lang].dashboardTitle;
+      document.getElementById("totalProductsTitle").textContent = translations[lang].totalProducts;
+      document.getElementById("activeTimersTitle").textContent = translations[lang].activeTimers;
+      document.getElementById("alertsTitle").textContent = translations[lang].upcomingAlerts;
+      document.getElementById("detailedStatsTitle").textContent = translations[lang].detailedStats;
+      document.getElementById("todayAlertsTitle").textContent = translations[lang].timersToday;
+      document.getElementById("timersTodayHeader").innerHTML = `
+        <tr>
+          <th>${translations[lang].section}</th>
+          <th>${translations[lang].product}</th>
+          <th>${translations[lang].time}</th>
+          <th>${translations[lang].status}</th>
+        </tr>`;
+      renderFeaturesGrid(lang);
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const locale = currentLang === "ar" ? 'ar-EG' : 'en-US';
+      const date = now.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const time = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+      document.getElementById("dateTime").textContent = `🗓️ ${date} - ⏰ ${time}`;
+    }
+
+    function renderFeaturesGrid(lang) {
+      const features = featuresData[lang];
+      const grid = document.getElementById("featuresGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      for (const f of features) {
+        const link = document.createElement("a");
+        link.href = f.url;
+        link.className = "feature-box";
+        link.tabIndex = 0;
+        link.setAttribute("aria-label", `${f.title}: ${f.desc}`);
+        link.innerHTML = `
+          <span class="feature-emoji" aria-hidden="true">${f.emoji}</span>
+          <div class="feature-title">${f.title}</div>
+          <div class="tooltip-text">${f.desc}</div>
+        `;
+        grid.appendChild(link);
+      }
+    }
+
+    async function fetchAndCountData() {
+      try {
+        const [res1, res2, res3] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=getProducts`),
+          fetch(`${SCRIPT_URL}?action=getTimers`),
+          fetch(`${SCRIPT_URL}?action=getAlerts`)
+        ]);
+        const [products, timers, alerts] = await Promise.all([
+          res1.json(), res2.json(), res3.json()
+        ]);
+        localStorage.setItem("products", JSON.stringify(products));
+        localStorage.setItem("timers", JSON.stringify(timers));
+        localStorage.setItem("alerts", JSON.stringify(alerts));
+        document.getElementById("productsCount").textContent = products.length;
+        const now = Date.now();
+        const active = timers.filter(t => new Date(t.Expiry_Time || t.expirationTime).getTime() > now);
+        document.getElementById("activeTimersCount").textContent = active.length;
+        const upcoming = alerts.filter(a => (a.Status || "").toLowerCase() !== "resolved");
+        document.getElementById("alertsCount").textContent = upcoming.length;
+        showDashboardCharts();
+        renderMergedAlerts();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function groupBy(arr, key) {
+      return arr.reduce((acc, cur) => {
+        const k = cur[key] || "غير معروف";
+        acc[k] = (acc[k] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function getTimersLast7Days(timers) {
+      const result = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const label = d.toLocaleDateString(currentLang === "ar" ? "ar-EG" : "en-US", { weekday: 'short', day: 'numeric' });
+        result[label] = 0;
+      }
+      timers.forEach(t => {
+        const dt = new Date(t.Product_Time || t.preparedTime);
+        const key = dt.toLocaleDateString(currentLang === "ar" ? "ar-EG" : "en-US", { weekday: 'short', day: 'numeric' });
+        if (key in result) result[key]++;
+      });
+      return result;
+    }
+
+    function showDashboardCharts() {
+      // Destroy previous charts if any
+      if (window._dashboardCharts) {
+        window._dashboardCharts.forEach(c => c.destroy && c.destroy());
+      }
+      // Data
+      const products = JSON.parse(localStorage.getItem("products") || "[]");
+      const timers = JSON.parse(localStorage.getItem("timers") || "[]");
+      const now = Date.now();
+      const activeTimers = timers.filter(t => new Date(t.Expiry_Time || t.expirationTime).getTime() > now);
+
+      // Chart Elements
+      const ctx1 = document.getElementById("productsBySection");
+      const ctx2 = document.getElementById("activeTimersBySection");
+      const ctx3 = document.getElementById("timersLast7Days");
+
+      window._dashboardCharts = [
+        new Chart(ctx1, {
+          type: "bar",
+          data: {
+            labels: Object.keys(groupBy(products, "Section")),
+            datasets: [{ data: Object.values(groupBy(products, "Section")), backgroundColor: "#0d6efd", label: "Products" }]
+          }, options: { responsive: true, plugins: { legend: { display: false } } }
+        }),
+        new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels: Object.keys(groupBy(activeTimers, "Section")),
+            datasets: [{ data: Object.values(groupBy(activeTimers, "Section")), backgroundColor: "#16a34a", label: "Active Timers" }]
+          }, options: { responsive: true, plugins: { legend: { display: false } } }
+        }),
+        new Chart(ctx3, {
+          type: "line",
+          data: {
+            labels: Object.keys(getTimersLast7Days(timers)),
+            datasets: [{ data: Object.values(getTimersLast7Days(timers)), borderColor: "#f97316", backgroundColor: "#fde68a", fill: true }]
+          }, options: { responsive: true }
+        })
+      ];
+    }
+
+    function getTimersExpiredToday(timers) {
+      const today = new Date();
+      return timers.filter(t => {
+        const exp = new Date(t.Expiry_Time || t.expirationTime);
+        return (
+          exp.getFullYear() === today.getFullYear() &&
+          exp.getMonth() === today.getMonth() &&
+          exp.getDate() === today.getDate() &&
+          exp < new Date()
+        );
+      }).map(t => ({
+        type: t.Section,
+        product: t.Product_Name_AR || t.product || t.Product_Name_EN,
+        time: new Date(t.Expiry_Time).toLocaleTimeString(currentLang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" }),
+        status: translations[currentLang].expired
+      }));
+    }
+
+    function renderMergedAlerts() {
+      const timers = JSON.parse(localStorage.getItem("timers") || "[]");
+      const alerts = JSON.parse(localStorage.getItem("alerts") || "[]");
+      const today = new Date();
+      const expired = getTimersExpiredToday(timers);
+      if (expired.length > 0) alertHowl.play();
+
+      const recentAlerts = alerts.filter(a => {
+        const d = new Date(a.Date);
+        return (
+          d.getFullYear() === today.getFullYear() &&
+          d.getMonth() === today.getMonth() &&
+          d.getDate() === today.getDate() &&
+          (a.Status || "").toLowerCase() !== "resolved"
+        );
+      }).map(a => ({
+        type: "🔔 " + (a.Alert_Type || ""),
+        product: a.Product_Name_EN || a.product,
+        time: new Date(a.Date).toLocaleTimeString(currentLang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" }),
+        status: translations[currentLang].active
+      }));
+
+      const all = [...expired, ...recentAlerts];
+      const tbody = document.getElementById("mergedAlertsBody");
+      tbody.innerHTML = "";
+
+      if (all.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-success">${translations[currentLang].noData}</td></tr>`;
+        return;
+      }
+      all.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.type}</td>
+          <td>${row.product}</td>
+          <td>${row.time}</td>
+          <td>${row.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Date/time update
+    applyLanguage(currentLang);
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Initial dashboard data & charts
+    document.addEventListener("DOMContentLoaded", () => {
+      applyLanguage(currentLang);
+      updateDateTime();
+      fetchAndCountData();
+      setInterval(updateDateTime, 60000);
+
+      document.getElementById("langToggle").addEventListener("click", () => {
+        currentLang = currentLang === "ar" ? "en" : "ar";
+        localStorage.setItem("appLang", currentLang);
+        applyLanguage(currentLang);
+        renderMergedAlerts();
+        showDashboardCharts();
+        updateDateTime();
+      });
+      document.getElementById("hamburgerBtn").addEventListener("click", () => {
+        document.querySelector(".sidebar").classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        const sidebar = document.querySelector(".sidebar");
+        const hamburgerBtn = document.getElementById("hamburgerBtn");
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          sidebar.classList.remove("open");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

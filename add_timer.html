@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>⏱️➕ إضافة مؤقت - إدارة المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {font-family: 'Segoe UI', 'Cairo', sans-serif; background-color: #f4f6f9; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;}
+    header {background-color: #fff; padding: 10px 20px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; height: 60px; z-index: 1100;}
+    .app-title {display: flex; align-items: center; gap: 12px; font-size: 1.7rem; font-weight: 700; color: #2c3e50;}
+    .app-title i {font-size: 2rem; color: #0d6efd;}
+    #dateTime {color: #6c757d; font-size: 1rem; font-weight: 600; min-width: 220px; text-align: left;}
+    #langToggle {background: linear-gradient(135deg, #4dabf7, #0d6efd); border: none; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 8px; box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3); transition: background 0.3s ease; direction: ltr;}
+    #langToggle:hover {background: linear-gradient(135deg, #0d6efd, #4dabf7);}
+    #hamburgerBtn {display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #0d6efd;}
+    .sidebar {position: fixed; top: 60px; right: 0; width: 240px; bottom: 0; background: #ffffff; border-left: 1px solid #dee2e6; padding: 20px 10px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; box-shadow: inset 0 0 10px #e1e5eb; transition: transform 0.3s ease; z-index: 1000;}
+    .sidebar a {display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-weight: 600; font-size: 1rem; color: #2c3e50; border-radius: 12px; text-decoration: none; background: linear-gradient(145deg, #f0f4ff, #d9e3ff); transition: all 0.25s ease;}
+    .sidebar a i {font-size: 1.3rem; color: #0d6efd;}
+    .sidebar a .emoji {font-size: 1.4rem; transition: transform 0.3s ease;}
+    .sidebar a:hover, .sidebar a.active {background: linear-gradient(135deg, #4a7fff, #a6c1ff); color: #fff;}
+    .sidebar a.active {pointer-events: none;}
+    .sidebar a:hover .emoji {animation: wiggle 0.4s;}
+    main#mainContent {margin-right: 240px; padding: 30px 25px; overflow-y: auto; background-color: #f4f6f9; flex-grow: 1; height: calc(100vh - 60px);}
+    @media (max-width: 992px) {main#mainContent {margin-right: 0;} .sidebar {transform: translateX(100%);} .sidebar.open {transform: translateX(0);} #hamburgerBtn {display: block;}}
+    @keyframes wiggle {0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(6deg); } 50% { transform: rotate(-6deg); } 75% { transform: rotate(4deg); }}
+    .category-bar-container {position: relative; width: 100%; max-height: 300px; margin-bottom: 8px; background: #e3f2fd; border-radius: 12px; box-shadow: inset 0 0 8px #b0c4de; padding: 10px 16px; display: none; flex-wrap: wrap; overflow-y: auto; gap: 10px; z-index: 1500;}
+    .category-bar-container.visible {display: flex;}
+    #categoryButtonsContainer {display: flex; flex-wrap: wrap; gap: 10px; width: 100%; justify-content: flex-start;}
+    #toggleCategoriesBtn {margin-bottom: 12px; align-self: flex-start;}
+    .main-toolbar {display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; justify-content: flex-start;}
+    .main-toolbar .form-control {width: 270px; max-width: 100%;}
+    .products-table-scroll { max-height: 380px; overflow-y: auto; width: 100%; background: #fff; border-radius: 10px; box-shadow: 0 1px 5px #e3f0ff; }
+    .products-table-scroll table { width: 100%; min-width: 320px; margin-bottom: 0; }
+    .products-table-scroll th, .products-table-scroll td { text-align: center; vertical-align: middle !important; white-space: normal; word-break: break-word; }
+    .products-table-scroll th { background: #e3f0ff; font-size: 1.08rem; position: sticky; top: 0; z-index: 2; box-shadow: 0 2px 4px #e3f0ff; }
+    .products-table-scroll tr { transition: background 0.18s; }
+    .products-table-scroll tr:hover { background: #f1f8ff; }
+    .products-table-scroll td input[type="number"], .products-table-scroll td input[type="date"] { width: 90px; border-radius: 8px; border: 1px solid #b6d4fe; text-align: center; }
+    .btn-add-timer { background: linear-gradient(135deg,#22c55e,#16a34a); color: #fff; font-weight: bold; border: none; border-radius: 12px; font-size: 1.15rem; padding: 7px 18px; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #b7f7d8; }
+    .btn-add-timer:hover { background: linear-gradient(135deg,#16a34a,#22c55e); box-shadow: 0 4px 16px #b7f7d8; }
+    .success-msg, .error-msg { font-size: 1.2rem; font-weight: 700; text-align: center; margin-top: 18px; }
+    .success-msg { color: #22c55e; }
+    .error-msg { color: #e11d48; }
+    h2 { font-size: 2.1rem; color: #0d6efd; font-weight: 900; margin-bottom: 18px; text-align: center; }
+    h4 { font-size: 1.3rem; color: #2563eb; font-weight: 800; margin-bottom: 18px; text-align: center; }
+    #sectionSettingsContainer {display: none; max-width: 430px; margin: 40px auto 0; background: #fff; border-radius: 16px; box-shadow: 0 4px 18px #bcd6f7; padding: 28px 24px 20px 24px; border: 2px solid #e3f2fd; text-align: center; position: relative; z-index: 2000;}
+    #sectionSettingsContainer .emoji {font-size: 2.5rem; margin-bottom: 10px; display: block;}
+    #sectionSettingsContainer h3 {font-size: 1.5rem; font-weight: bold; color: #1976d2; margin-bottom: 20px; margin-top: 0; display: flex; align-items: center; gap: 10px; justify-content: center;}
+    #sectionSettingsContainer label {font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block; font-size: 1.08rem; text-align: right;}
+    #sectionSettingsContainer select, #sectionSettingsContainer input[type="checkbox"] {width: 100%; padding: 8px 10px; border-radius: 8px; border: 1.5px solid #b6d4fe; margin-bottom: 18px; font-size: 1.05rem; text-align: center;}
+    #sectionSettingsContainer .btn {min-width: 110px; font-size: 1.1rem; font-weight: 700; margin: 0 8px; padding: 8px 16px;}
+    #sectionSettingsContainer .close-btn {position: absolute; top: 12px; left: 12px; font-size: 1.3rem; color: #e11d48; background: none; border: none; cursor: pointer; font-weight: bold; z-index: 1;}
+    #sectionSettingsContainer .close-btn:hover { color: #a61b33; }
+    @keyframes fadeIn {from {opacity: 0; transform: scale(0.95);} to {opacity: 1; transform: scale(1);}}
+    @media (max-width: 700px) {#sectionSettingsContainer { max-width: 98vw; padding: 16px 4vw; }}
+  </style>
+</head>
+<body>
+  <header>
+    <button id="hamburgerBtn" aria-label="فتح القائمة"><i class="bi bi-list"></i></button>
+    <div id="dateTime" aria-live="polite">🗓️ --:--</div>
+    <div class="app-title"><i class="bi bi-cart-fill"></i> <span data-key="appTitle">إدارة المنتجات</span></div>
+    <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
+  </header>
+  <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
+    <a href="index.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
+    <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
+    <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
+    <a href="actions_timers.html"><i class="bi bi-tools"></i><span class="emoji">⚙️</span> <span data-key="navActions">إجراءات المنتج</span></a>
+    <a href="print_options.html"><i class="bi bi-printer-fill"></i><span class="emoji">🖨️</span> <span data-key="navPrintOptions">خيارات الطباعة</span></a>
+    <a href="sound_settings.html"><i class="bi bi-volume-up-fill"></i><span class="emoji">🔊</span> <span data-key="navSoundSettings">إعدادات الصوت</span></a>
+    <a href="alerts.html"><i class="bi bi-bell-fill"></i><span class="emoji">🔔</span> <span data-key="navAlerts">إعدادات التنبيه</span></a>
+    <a href="reports.html"><i class="bi bi-bar-chart-line-fill"></i><span class="emoji">📈</span> <span data-key="navReports">التقارير</span></a>
+  </nav>
+  <main id="mainContent">
+    <h2 class="mb-4 text-center" data-key="addTimerTitle">⏰➕ إضافة مؤقت جديد</h2>
+    <div class="main-toolbar">
+      <input type="search" id="productSearchInput" class="form-control" aria-label="بحث المنتجات" placeholder="ابحث عن منتج..." autocomplete="off" />
+      <button id="toggleCategoriesBtn" class="btn btn-info"><i class="bi bi-list"></i> <span data-key="showSections">أقسام المنتجات</span></button>
+    </div>
+    <div class="category-bar-container hidden" aria-label="Filter by sections" role="region" aria-live="polite">
+      <div id="categoryButtonsContainer" tabindex="0" aria-label="Section filter buttons"></div>
+    </div>
+    <div id="sectionSettingsContainer"></div>
+    <div class="products-table-scroll" id="productsTableContainer"></div>
+    <div class="success-msg" id="successMsg" style="display:none"></div>
+    <div class="error-msg" id="errorMsg" style="display:none"></div>
+  </main>
+  <script>
+    // إعدادات Google Sheet
+    const API_URL = "https://script.google.com/macros/s/AKfycbyVSSPlJFT1ru3OWoOlqDzRr6lhBeiphl8GsMmN96kSPO_v5vtW28vQ-0O1LGLHDJTG/exec";
+
+    // الترجمة
+    const translations = {
+      ar: {
+        appTitle: "إدارة المنتجات",
+        navHome: "الرئيسية",
+        navShowProducts: "عرض المنتجات",
+        navAddTimer: "إضافة مؤقت",
+        navTimerTable: "جدول المؤقتات",
+        navActions: "إجراءات المنتج",
+        navPrintOptions: "خيارات الطباعة",
+        navSoundSettings: "إعدادات الصوت",
+        navAlerts: "إعدادات التنبيه",
+        navReports: "التقارير",
+        langToggleText: "English",
+        addTimerTitle: "⏰➕ إضافة مؤقت جديد",
+        section: "القسم",
+        product: "المنتج",
+        quantity: "الكمية",
+        add: "➕ اضافة مؤقت",
+        success: "✅ تم إضافة المؤقت بنجاح!",
+        error: "❌ يرجى إدخال الكمية بشكل صحيح.",
+        noProducts: "🚫 لا يوجد منتجات متاحة في هذا القسم.",
+        duration: "⏳ المدة (ساعة)",
+        addTimerBtn: "➕ إضافة",
+        showSections: "أقسام المنتجات",
+        hideSections: "إخفاء الأقسام",
+        allSections: "كل الأقسام",
+        searchPlaceholder: "ابحث عن منتج...",
+        sectionSettingsTitle: "إعدادات القسم",
+        inputTypeLabel: "طريقة إدخال بيانات المؤقت:",
+        inputTypeQuantity: "إدخال الكمية فقط (مدة الصلاحية تلقائية)",
+        inputTypeManual: "إدخال الكمية + تاريخ الإنتاج وتاريخ الانتهاء",
+        saveSettings: "حفظ الإعدادات",
+        close: "إغلاق",
+        remaining: "الوقت المتبقي",
+        prodDate: "تاريخ الإنتاج",
+        expDate: "تاريخ الانتهاء",
+        enableQuantity: "تفعيل إدخال الكمية" // إضافة الترجمة هنا
+      },
+      en: {
+        appTitle: "Product Management",
+        navHome: "Home",
+        navShowProducts: "Show Products",
+        navAddTimer: "Add Timer",
+        navTimerTable: "Timer Table",
+        navActions: "Product Actions",
+        navPrintOptions: "Print Options",
+        navSoundSettings: "Sound Settings",
+        navAlerts: "Alerts Settings",
+        navReports: "Reports",
+        langToggleText: "العربية",
+        addTimerTitle: "⏰➕ Add New Timer",
+        section: "Section",
+        product: "Product",
+        quantity: "Quantity",
+        add: "➕ Add Timer",
+        success: "✅ Timer added successfully!",
+        error: "❌ Please enter a valid quantity.",
+        noProducts: "🚫 No products available in this section.",
+        duration: "⏳ Duration (hr)",
+        addTimerBtn: "➕ Add",
+        showSections: "Show Sections",
+        hideSections: "Hide Sections",
+        allSections: "All Sections",
+        searchPlaceholder: "Search for a product...",
+        sectionSettingsTitle: "Section Settings",
+        inputTypeLabel: "Timer input method:",
+        inputTypeQuantity: "Quantity only (auto expiry)",
+        inputTypeManual: "Quantity + Production & Expiry Dates",
+        saveSettings: "Save Settings",
+        close: "Close",
+        remaining: "Remaining Time",
+        prodDate: "Production Date",
+        expDate: "Expiry Date",
+        enableQuantity: "Enable quantity input" // إضافة الترجمة هنا
+      }
+    };
+
+    // نفس خريطة الإيموجي
+    const sectionEmojis = {
+      "Hot Drinks": "☕", "المشروبات الساخنة": "☕",
+      "Cold Drinks": "🧊", "المشروبات الباردة": "🧊",
+      "Snacks": "🍪", "وجبات خفيفة": "🍪",
+      "Desserts": "🍰", "حلويات": "🍰",
+      "Salads": "🥗", "سلطات": "🥗",
+      "Soups": "🍲", "شوربات": "🍲",
+      "Bakery": "🥐", "مخبوزات": "🥐",
+      "Breakfast": "🍳", "فطور": "🍳",
+      "Juices": "🧃", "عصائر": "🧃",
+      "Alcohol": "🍷", "مشروبات كحولية": "🍷",
+      "Tea": "🍵", "شاي": "🍵",
+      "Coffee": "☕", "قهوة": "☕",
+      "Sandwiches": "🥪", "ساندويتشات": "🥪",
+      "Pasta": "🍝", "مكرونة": "🍝",
+      "Pizza": "🍕", "بيتزا": "🍕",
+      "Grill": "🍖", "مشويات": "🍖",
+      "Seafood": "🦞", "مأكولات بحرية": "🦞"
+    };
+
+    let currentLang = localStorage.getItem("appLang") || "ar";
+    let allProducts = [];
+    let allSections = [];
+    let selectedSection = "all";
+    let currentSearch = "";
+
+    // إعدادات طريقة الإدخال لكل قسم
+    function getSectionInputType(section) {
+      const key = "sectionInputType_" + section;
+      return localStorage.getItem(key) || "quantity";
+    }
+    function setSectionInputType(section, type) {
+      const key = "sectionInputType_" + section;
+      localStorage.setItem(key, type);
+    }
+    function getSectionQuantityEnabled(section) {
+      const key = "sectionQuantityEnabled_" + section;
+      return localStorage.getItem(key) !== "false";
+    }
+    function setSectionQuantityEnabled(section, enabled) {
+      const key = "sectionQuantityEnabled_" + section;
+      localStorage.setItem(key, enabled ? "true" : "false");
+    }
+
+    function applyLanguage(lang) {
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+      document.getElementById("langText").textContent = translations[lang].langToggleText;
+      document.querySelectorAll("[data-key]").forEach(el => {
+        const key = el.getAttribute("data-key");
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+      document.querySelectorAll("[data-key='addTimerTitle']").forEach(el => {
+        el.textContent = translations[lang].addTimerTitle;
+      });
+      document.getElementById("productSearchInput").placeholder = translations[lang].searchPlaceholder;
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[lang].showSections;
+      hideCategoryButtonsContainer();
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const locale = currentLang === "ar" ? 'ar-EG' : 'en-US';
+      const date = now.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const time = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+      document.getElementById("dateTime").textContent = `🗓️ ${date} - ⏰ ${time}`;
+    }
+
+    function loadProductsAndSections() {
+      try {
+        allProducts = JSON.parse(localStorage.getItem('products') || '[]');
+      } catch { allProducts = []; }
+      try {
+        allSections = JSON.parse(localStorage.getItem('productSections') || '[]');
+      } catch { allSections = []; }
+    }
+
+    function getSectionName(sectionObj) {
+      if (typeof sectionObj === "string") return sectionObj;
+      if (currentLang === "ar") return sectionObj.ar || sectionObj.en || "";
+      return sectionObj.en || sectionObj.ar || "";
+    }
+
+    function getFilteredProducts() {
+      let filtered = allProducts;
+      if (selectedSection !== "all") {
+        filtered = filtered.filter(p =>
+          (currentLang === "ar"
+            ? (p.Section_AR === selectedSection)
+            : (p.Section === selectedSection)
+          )
+        );
+      }
+      if (currentSearch && currentSearch.length > 0) {
+        const q = currentSearch.toLowerCase();
+        filtered = filtered.filter(p =>
+          Object.values(p).some(val =>
+            (val ?? "").toString().toLowerCase().includes(q)
+          )
+        );
+      }
+      return filtered;
+    }
+
+    function renderCategoryButtons() {
+      const container = document.getElementById('categoryButtonsContainer');
+      container.innerHTML = '';
+      // زر كل الأقسام
+      const allBtn = document.createElement('button');
+      allBtn.textContent = translations[currentLang].allSections;
+      allBtn.className = 'btn btn-primary';
+      allBtn.dataset.category = 'all';
+      if (selectedSection === "all") allBtn.classList.add("active");
+      allBtn.onclick = () => {
+        selectedSection = "all";
+        renderCategoryButtons();
+        renderProductsTable();
+        hideCategoryButtonsContainer();
+
+      };
+      container.appendChild(allBtn);
+      // باقي الأقسام
+      allSections.forEach(sectionObj => {
+        const section = getSectionName(sectionObj);
+        const emoji = sectionEmojis[section] || "📦";
+        const btn = document.createElement('button');
+        btn.innerHTML = `${emoji} ${section}`;
+        btn.className = 'btn btn-outline-primary';
+        btn.dataset.category = section;
+        if (selectedSection === section) btn.classList.add("active");
+        btn.onclick = () => {
+          selectedSection = section;
+          renderCategoryButtons();
+          renderProductsTable();
+          hideCategoryButtonsContainer();
+        };
+        // إعدادات القسم بزر الفأرة الأيمن
+        btn.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          let pwd = prompt(currentLang === "ar" ? "ادخل كلمة المرور لإعدادات القسم:" : "Enter password for section settings:");
+          if (pwd !== "123") {
+            alert(currentLang === "ar" ? "كلمة المرور غير صحيحة" : "Wrong password");
+            return;
+          }
+          showSectionSettings(section, emoji);
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    // عرض جدول المنتجات حسب طريقة الإدخال للقسم
+    function renderProductsTable() {
+      const products = getFilteredProducts();
+      let html = "";
+      if (!products.length) {
+        html = `<div class="alert alert-warning">${translations[currentLang]["noProducts"]}</div>`;
+      } else {
+        // طريقة الإدخال للقسم الحالي
+        let inputType = "quantity";
+        let quantityEnabled = true;
+        if (selectedSection !== "all") {
+          inputType = getSectionInputType(selectedSection);
+          quantityEnabled = getSectionQuantityEnabled(selectedSection);
+        }
+        html += `<table class="table table-bordered align-middle"><thead>
+          <tr>
+            <th style="white-space:normal;word-break:break-word;">🍽️ ${translations[currentLang]["product"]}</th>`;
+        if (inputType === "quantity") { // إذا كانت المدة تلقائية
+          html += `<th style="white-space:normal;word-break:break-word;">⏳ ${translations[currentLang]["duration"]}</th>`;
+        }
+        if (quantityEnabled) { // إذا كانت الكمية مفعلة
+          html += `<th style="white-space:normal;word-break:break-word;">🔢 ${translations[currentLang]["quantity"]}</th>`;
+        }
+        if (inputType === "manual") { // إذا كان إدخال التواريخ يدوياً
+          html += `
+            <th style="white-space:normal;word-break:break-word;">🏭 ${translations[currentLang].prodDate}</th>
+            <th style="white-space:normal;word-break:break-word;">📅 ${translations[currentLang].expDate}</th>
+            <th style="white-space:normal;word-break:break-word;">⏰ ${translations[currentLang].remaining}</th>
+          `;
+        }
+        html += `<th style="white-space:normal;word-break:break-word;">⏰ ${translations[currentLang]["addTimerBtn"]}</th>
+          </tr></thead><tbody>`;
+        products.forEach((prod, idx) => {
+          html += `<tr id="prodRow${idx}">
+            <td>${currentLang === "ar" ? prod.Product_Name_AR : prod.Product_Name_EN}</td>`;
+          if (inputType === "quantity") { // إذا كانت المدة تلقائية
+            html += `<td>⏳ ${prod.Preparation_Duration || ""}</td>`;
+          }
+          if (quantityEnabled) { // إذا كانت الكمية مفعلة
+            html += `<td><input type="number" min="1" class="form-control" id="qty${idx}" placeholder="🔢" /></td>`;
+          }
+          if (inputType === "manual") { // إذا كان إدخال التواريخ يدوياً
+            html += `
+              <td><input type="date" class="form-control" id="prodDate${idx}" lang="en" /></td>
+              <td><input type="date" class="form-control" id="expDate${idx}" lang="en" onchange="updateRemaining(${idx})" /></td>
+              <td id="remaining${idx}" style="font-weight:bold;color:#1976d2;">-</td>
+            `;
+          }
+          html += `<td>
+              <button class="btn-add-timer" onclick="addTimerFromTable('${currentLang === "ar" ? prod.Section_AR : prod.Section}', ${idx})">
+                ⏰➕
+              </button>
+            </td>
+          </tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+      document.getElementById('productsTableContainer').innerHTML = html;
+    }
+
+    // دالة تحويل التاريخ من صيغة yyyy-mm-dd إلى صيغة كاملة حسب اللغة
+    function formatFullDate(dateStr, lang) {
+      const d = new Date(dateStr + "T12:00:00"); // إضافة وقت لتجنب مشاكل التوقيت الصيفي/الشتاء
+      return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+
+    // دالة حساب وعرض الوقت المتبقي (أيام، ساعات، دقائق، ثواني)
+    window.updateRemaining = function(idx) {
+      const expDateInput = document.getElementById('expDate'+idx);
+      const remainingCell = document.getElementById('remaining'+idx);
+      if (!expDateInput || !remainingCell) return;
+      const expDateValue = expDateInput.value;
+      if (!expDateValue) { remainingCell.textContent = "-"; return; }
+
+      const now = new Date();
+      const exp = new Date(expDateValue + "T23:59:59"); // يضاف 23:59:59 لجعل تاريخ الانتهاء يشمل اليوم بالكامل
+      let remainingMs = exp - now;
+
+      if (remainingMs < 0) {
+        remainingCell.textContent = currentLang === "ar" ? "منتهي" : "Expired";
+        return;
+      }
+
+      let days = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+      remainingMs %= (1000 * 60 * 60 * 24);
+      let hours = Math.floor(remainingMs / (1000 * 60 * 60));
+      remainingMs %= (1000 * 60 * 60);
+      let mins = Math.floor(remainingMs / (1000 * 60));
+      remainingMs %= (1000 * 60);
+      let secs = Math.floor(remainingMs / 1000);
+
+      let textParts = [];
+      if (days > 0) textParts.push(`${days} ${currentLang === "ar" ? "يوم" : "day"}${days > 1 && currentLang === "en" ? "s" : ""}`);
+      if (hours > 0) textParts.push(`${hours} ${currentLang === "ar" ? "ساعة" : "hr"}`);
+      if (mins > 0) textParts.push(`${mins} ${currentLang === "ar" ? "دقيقة" : "min"}`);
+      if (secs > 0) textParts.push(`${secs} ${currentLang === "ar" ? "ثانية" : "sec"}`);
+
+      remainingCell.textContent = textParts.join(" ").trim();
+      if (remainingCell.textContent === "") remainingCell.textContent = currentLang === "ar" ? "أقل من ثانية" : "< 1 sec";
+  }
+
+
+    // إضافة مؤقت من الجدول
+    window.addTimerFromTable = function(section, idx) {
+      const products = getFilteredProducts();
+      const prod = products[idx];
+      const successMsg = document.getElementById('successMsg');
+      const errorMsg = document.getElementById('errorMsg');
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+
+      let inputType = getSectionInputType(selectedSection);
+      let quantityEnabled = getSectionQuantityEnabled(selectedSection);
+
+      let qty = 1; // القيمة الافتراضية للكمية إذا لم يتم تمكينها
+      if (quantityEnabled) {
+        const qtyInput = document.getElementById('qty'+idx);
+        qty = parseInt(qtyInput.value);
+        if (isNaN(qty) || qty < 1) {
+          errorMsg.textContent = "❌🚫 " + translations[currentLang]["error"];
+          errorMsg.style.display = "block";
+          if (qtyInput) qtyInput.focus();
+          return;
+        }
+      }
+
+      let prodDateValue = "", expDateValue = "", prodDateFull = "", expDateFull = "", remainingText = "";
+      let expirationTimeMs = 0; // سيتم تعيينها لاحقًا
+
+      if (inputType === "manual") {
+        prodDateValue = document.getElementById('prodDate'+idx).value;
+        expDateValue = document.getElementById('expDate'+idx).value;
+
+        if (!prodDateValue || !expDateValue) {
+          errorMsg.textContent = "❌🚫 " + (currentLang === "ar" ? "يرجى إدخال التواريخ بشكل صحيح." : "Please enter both dates.");
+          errorMsg.style.display = "block";
+          return;
+        }
+        prodDateFull = formatFullDate(prodDateValue, currentLang);
+        expDateFull = formatFullDate(expDateValue, currentLang);
+
+        const expDateObj = new Date(expDateValue + "T23:59:59");
+        expirationTimeMs = expDateObj.getTime(); // وقت الانتهاء من التاريخ المدخل يدوياً
+
+        // حساب الوقت المتبقي للعرض في السجل
+        const now = new Date();
+        let currentRemainingMs = expDateObj.getTime() - now.getTime();
+        if (currentRemainingMs < 0) {
+          remainingText = currentLang === "ar" ? "منتهي" : "Expired";
+        } else {
+            let days = Math.floor(currentRemainingMs / (1000 * 60 * 60 * 24));
+            currentRemainingMs %= (1000 * 60 * 60 * 24);
+            let hours = Math.floor(currentRemainingMs / (1000 * 60 * 60));
+            currentRemainingMs %= (1000 * 60 * 60);
+            let mins = Math.floor(currentRemainingMs / (1000 * 60));
+            currentRemainingMs %= (1000 * 60);
+            let secs = Math.floor(currentRemainingMs / 1000);
+
+            let textParts = [];
+            if (days > 0) textParts.push(`${days} ${currentLang === "ar" ? "يوم" : "day"}${days > 1 && currentLang === "en" ? "s" : ""}`);
+            if (hours > 0) textParts.push(`${hours} ${currentLang === "ar" ? "ساعة" : "hr"}`);
+            if (mins > 0) textParts.push(`${mins} ${currentLang === "ar" ? "دقيقة" : "min"}`);
+            if (secs > 0) textParts.push(`${secs} ${currentLang === "ar" ? "ثانية" : "sec"}`);
+            
+            remainingText = textParts.join(" ").trim();
+            if (remainingText === "") remainingText = currentLang === "ar" ? "أقل من ثانية" : "< 1 sec";
+        }
+      } else { // المدة تلقائية (quantity only input type)
+        const preparedTime = Date.now();
+        const duration = parseFloat(prod.Preparation_Duration) || 1;
+        expirationTimeMs = preparedTime + duration * 3600000;
+        prodDateFull = new Date(preparedTime).toLocaleDateString(currentLang === "ar" ? "ar-EG" : "en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        expDateFull = new Date(expirationTimeMs).toLocaleDateString(currentLang === "ar" ? "ar-EG" : "en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      }
+
+      // حفظ المؤقت في localStorage
+      let timers = [];
+      try { timers = JSON.parse(localStorage.getItem('timers') || '[]'); } catch { timers = []; }
+      
+      const timerObj = {
+        section,
+        product: currentLang === "ar" ? prod.Product_Name_AR : prod.Product_Name_EN,
+        product_ar: prod.Product_Name_AR || "",
+        product_en: prod.Product_Name_EN || "",
+        duration: prod.Preparation_Duration || "", // المدة الأساسية
+        quantity: qty,
+        preparedTime: new Date().getTime(), // وقت الإضافة الفعلي
+        expirationTime: expirationTimeMs, // وقت الانتهاء المحسوب أو المدخل
+        productionDate: prodDateFull, // تاريخ الإنتاج (تنسيق كامل)
+        expiryDate: expDateFull, // تاريخ الانتهاء (تنسيق كامل)
+        remaining: remainingText // الوقت المتبقي (للتصدير)
+      };
+      timers.push(timerObj);
+      localStorage.setItem('timers', JSON.stringify(timers));
+
+      // التصدير إلى جوجل شيت
+      let exportData = [{
+        Section: prod.Section || prod.Section_AR || "",
+        Product_Name_AR: prod.Product_Name_AR || "",
+        Product_Name_EN: prod.Product_Name_EN || "",
+        Standard_Temp: prod.Standard_Temp || "",
+        Preparation_Duration: prod.Preparation_Duration || "",
+        Time_Unit: prod.Time_Unit || "",
+        Quantity: qty,
+        Product_Time: prodDateFull, // استخدام التاريخ المنسق
+        Expiry_Time: expDateFull, // استخدام التاريخ المنسق
+        Remaining: remainingText, // استخدام الوقت المتبقي المنسق
+        User: localStorage.getItem("username") || "User"
+      }];
+
+      fetch("https://script.google.com/macros/s/AKfycbyVSSPlJFT1ru3OWoOlqDzRr6lhBeiphl8GsMmN96kSPO_v5vtW28vQ-0O1LGLHDJTG/exec?action=addTimers", {
+        method: "POST",
+        body: JSON.stringify(exportData),
+        headers: {"Content-Type": "application/json"}
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.result === "success") {
+          successMsg.textContent = "✅⏰ " + translations[currentLang]["success"] + " (تمت الإضافة لجوجل شيت)";
+          successMsg.style.display = "block";
+        } else {
+          errorMsg.textContent = "❌ " + (data.error || "حدث خطأ أثناء التصدير لجوجل شيت!");
+          errorMsg.style.display = "block";
+        }
+      }).catch((e)=>{
+        console.error("Error sending to Google Sheet:", e);
+        errorMsg.textContent = "❌ حدث خطأ أثناء الاتصال بجوجل شيت!";
+        errorMsg.style.display = "block";
+      });
+
+      document.getElementById('prodRow'+idx).style.display = 'none';
+      // لا تنتظر 3 ثواني قبل التحويل
+      
+    };
+
+    // إعدادات القسم - نافذة منسقة
+    function showSectionSettings(section, emoji) {
+      document.querySelector('.category-bar-container').style.display = 'none';
+      const container = document.getElementById('sectionSettingsContainer');
+      let inputType = getSectionInputType(section);
+      let quantityEnabled = getSectionQuantityEnabled(section);
+      container.innerHTML = `
+        <button class="close-btn" onclick="closeSectionSettings()" title="${translations[currentLang].close}">&times;</button>
+        <span class="emoji">${emoji}</span>
+        <h3>${emoji} ${section}</h3>
+        <form id="sectionSettingsForm">
+          <label for="inputTypeSelect">${translations[currentLang].inputTypeLabel}</label>
+          <select id="inputTypeSelect" name="inputType">
+            <option value="quantity">${translations[currentLang].inputTypeQuantity}</option>
+            <option value="manual">${translations[currentLang].inputTypeManual}</option>
+          </select>
+          <div style="margin-bottom:18px;">
+            <input type="checkbox" id="enableQuantity" ${quantityEnabled ? "checked" : ""} />
+            <label for="enableQuantity" style="display:inline;font-weight:500;margin-right:8px;">${translations[currentLang].enableQuantity}</label>
+          </div>
+          <div style="margin-top:18px;">
+            <button type="submit" class="btn btn-primary">${translations[currentLang].saveSettings}</button>
+            <button type="button" class="btn btn-secondary" onclick="closeSectionSettings()">${translations[currentLang].close}</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('inputTypeSelect').value = inputType;
+      document.getElementById('enableQuantity').checked = quantityEnabled;
+      container.style.display = 'block';
+
+      document.getElementById('sectionSettingsForm').onsubmit = function(e) {
+        e.preventDefault();
+        const type = document.getElementById('inputTypeSelect').value;
+        const quantity = document.getElementById('enableQuantity').checked;
+        setSectionInputType(section, type);
+        setSectionQuantityEnabled(section, quantity);
+        container.style.display = 'none';
+        showCategoryButtonsContainer();
+        renderProductsTable();
+        showAppMessage(currentLang === "ar" ? "تم حفظ إعدادات القسم" : "Section settings saved", "success");
+      };
+    }
+    window.closeSectionSettings = function() {
+      document.getElementById('sectionSettingsContainer').style.display = 'none';
+      showCategoryButtonsContainer();
+    }
+    function hideCategoryButtonsContainer() {
+      const container = document.querySelector('.category-bar-container');
+      container.classList.remove('visible');
+      container.classList.add('hidden');
+      document.getElementById('productsTableContainer').style.display = 'block';
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].showSections;
+    }
+    function showCategoryButtonsContainer() {
+      const container = document.querySelector('.category-bar-container');
+      container.classList.remove('hidden');
+      container.classList.add('visible');
+      document.getElementById('productsTableContainer').style.display = 'none';
+      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].hideSections;
+    }
+    document.getElementById('toggleCategoriesBtn').addEventListener('click', () => {
+      const container = document.querySelector('.category-bar-container');
+      if (container.classList.contains('visible')) {
+        hideCategoryButtonsContainer();
+      } else {
+        showCategoryButtonsContainer();
+      }
+    });
+    document.getElementById("productSearchInput").addEventListener("input", function() {
+      currentSearch = this.value.trim();
+      renderProductsTable();
+    });
+    document.getElementById("hamburgerBtn").addEventListener("click", () => {
+      document.querySelector(".sidebar").classList.toggle("open");
+    });
+    document.addEventListener("click", (e) => {
+      const sidebar = document.querySelector(".sidebar");
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        sidebar.classList.remove("open");
+      }
+    });
+    document.getElementById("langToggle").addEventListener("click", () => {
+      currentLang = currentLang === "ar" ? "en" : "ar";
+      localStorage.setItem("appLang", currentLang);
+      applyLanguage(currentLang);
+      renderCategoryButtons();
+      renderProductsTable();
+      updateDateTime();
+    });
+    function showAppMessage(msg, type = "success") {
+      const el = document.getElementById("successMsg");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 2500);
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      applyLanguage(currentLang);
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      loadProductsAndSections();
+      renderCategoryButtons();
+      renderProductsTable();
+	  // تأكيد وجود أقسام
+if (!allSections || allSections.length === 0) {
+  allSections = [...new Set(allProducts.map(p => ({
+    ar: p.Section_AR || p.Section,
+    en: p.Section || p.Section_AR
+  })))];
+
+  localStorage.setItem("productSections", JSON.stringify(allSections));
+}
+
+    });
+	
+  </script>
+</body>
+</html>
