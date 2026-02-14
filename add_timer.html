@@ -127,7 +127,7 @@
         inputTypeManual: "إدخال الكمية + تاريخ الإنتاج وتاريخ الانتهاء",
         saveSettings: "حفظ الإعدادات",
         close: "إغلاق",
-        remaining: "الوقت المتبقي",
+        remaining: "الوقت ��لمتبقي",
         prodDate: "تاريخ الإنتاج",
         expDate: "تاريخ الانتهاء",
         enableQuantity: "تفعيل إدخال الكمية" // إضافة الترجمة هنا
@@ -530,7 +530,7 @@
         Quantity: qty,
         Product_Time: prodDateFull, // استخدام التاريخ المنسق
         Expiry_Time: expDateFull, // استخدام التاريخ المنسق
-        Remaining: remainingText, // استخدام الوقت المتبقي المنسق
+        Remaining: remainingText, // استخدام الوقت المتبقي ال��نسق
         User: localStorage.getItem("username") || "User"
       }];
 
@@ -675,5 +675,9 @@ if (!allSections || allSections.length === 0) {
     });
 	
   </script>
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>

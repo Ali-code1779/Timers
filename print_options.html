@@ -389,7 +389,7 @@
       }
     }
 
-    // طباعة جدول المؤقتات مع رأس الجدول
+    // طباعة جدول المؤقتات مع رأس الج��ول
     function printTable(data) {
       let lang = localStorage.getItem("appLang") || "ar";
       let sectionTitle = document.getElementById("sectionSelect").selectedOptions[0].textContent;
@@ -542,5 +542,9 @@
       link.click();
     }
   </script>
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
