@@ -65,7 +65,7 @@
     <button id="langToggle" aria-label="تبديل اللغة"><i class="bi bi-globe"></i> <span id="langText">English</span></button>
   </header>
   <nav class="sidebar" aria-label="قائمة التنقل الجانبية">
-    <a href="index.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
+    <a href="home_timer.html"><i class="bi bi-house-door-fill"></i><span class="emoji">🏠</span> <span data-key="navHome">الرئيسية</span></a>
     <a href="show_products.html"><i class="bi bi-box-seam"></i><span class="emoji">📦</span> <span data-key="navShowProducts">عرض المنتجات</span></a>
     <a href="add_timer.html" class="active" aria-current="page"><i class="bi bi-clock-history"></i><span class="emoji">⏱️</span> <span data-key="navAddTimer">إضافة مؤقت</span></a>
     <a href="timer_table.html"><i class="bi bi-table"></i><span class="emoji">📋</span> <span data-key="navTimerTable">جدول المؤقتات</span></a>
@@ -130,7 +130,7 @@
         remaining: "الوقت المتبقي",
         prodDate: "تاريخ الإنتاج",
         expDate: "تاريخ الانتهاء",
-        enableQuantity: "تفعيل إدخال الكمية" // إضافة الترجمة هنا
+        enableQuantity: "تفعيل إدخال الكمية"
       },
       en: {
         appTitle: "Product Management",
@@ -167,7 +167,7 @@
         remaining: "Remaining Time",
         prodDate: "Production Date",
         expDate: "Expiry Date",
-        enableQuantity: "Enable quantity input" // إضافة الترجمة هنا
+        enableQuantity: "Enable quantity input"
       }
     };
 
@@ -228,7 +228,8 @@
         el.textContent = translations[lang].addTimerTitle;
       });
       document.getElementById("productSearchInput").placeholder = translations[lang].searchPlaceholder;
-      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[lang].showSections;
+      const toggleBtnSpan = document.getElementById('toggleCategoriesBtn').querySelector('span[data-key="showSections"]');
+      if (toggleBtnSpan) toggleBtnSpan.textContent = translations[lang].showSections;
       hideCategoryButtonsContainer();
     }
 
@@ -244,9 +245,19 @@
       try {
         allProducts = JSON.parse(localStorage.getItem('products') || '[]');
       } catch { allProducts = []; }
+
       try {
-        allSections = JSON.parse(localStorage.getItem('productSections') || '[]');
-      } catch { allSections = []; }
+        let rawSections = JSON.parse(localStorage.getItem('productSections') || '[]');
+        const seen = new Set();
+        allSections = rawSections.filter(sec => {
+          const name = getSectionName(sec).trim();
+          if (!name || seen.has(name)) return false;
+          seen.add(name);
+          return true;
+        });
+      } catch {
+        allSections = [];
+      }
     }
 
     function getSectionName(sectionObj) {
@@ -279,6 +290,7 @@
     function renderCategoryButtons() {
       const container = document.getElementById('categoryButtonsContainer');
       container.innerHTML = '';
+
       // زر كل الأقسام
       const allBtn = document.createElement('button');
       allBtn.textContent = translations[currentLang].allSections;
@@ -290,34 +302,52 @@
         renderCategoryButtons();
         renderProductsTable();
         hideCategoryButtonsContainer();
-
       };
       container.appendChild(allBtn);
-      // باقي الأقسام
+
+      // إزالة التكرار
+      const uniqueSections = new Set();
+
       allSections.forEach(sectionObj => {
-        const section = getSectionName(sectionObj);
-        const emoji = sectionEmojis[section] || "📦";
+        const sectionName = getSectionName(sectionObj).trim();
+
+        if (!sectionName) return;
+
+        if (uniqueSections.has(sectionName)) return;
+
+        uniqueSections.add(sectionName);
+
+        const emoji = sectionEmojis[sectionName] || "📦";
+
         const btn = document.createElement('button');
-        btn.innerHTML = `${emoji} ${section}`;
+        btn.innerHTML = `${emoji} ${sectionName}`;
         btn.className = 'btn btn-outline-primary';
-        btn.dataset.category = section;
-        if (selectedSection === section) btn.classList.add("active");
+        btn.dataset.category = sectionName;
+
+        if (selectedSection === sectionName) btn.classList.add("active");
+
         btn.onclick = () => {
-          selectedSection = section;
+          selectedSection = sectionName;
           renderCategoryButtons();
           renderProductsTable();
           hideCategoryButtonsContainer();
         };
-        // إعدادات القسم بزر الفأرة الأيمن
+
+        // كليك يمين للإعدادات
         btn.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          let pwd = prompt(currentLang === "ar" ? "ادخل كلمة المرور لإعدادات القسم:" : "Enter password for section settings:");
+          let pwd = prompt(currentLang === "ar"
+            ? "ادخل كلمة المرور لإعدادات القسم:"
+            : "Enter password for section settings:");
+
           if (pwd !== "123") {
             alert(currentLang === "ar" ? "كلمة المرور غير صحيحة" : "Wrong password");
             return;
           }
-          showSectionSettings(section, emoji);
+
+          showSectionSettings(sectionName, emoji);
         });
+
         container.appendChild(btn);
       });
     }
@@ -339,13 +369,13 @@
         html += `<table class="table table-bordered align-middle"><thead>
           <tr>
             <th style="white-space:normal;word-break:break-word;">🍽️ ${translations[currentLang]["product"]}</th>`;
-        if (inputType === "quantity") { // إذا كانت المدة تلقائية
+        if (inputType === "quantity") {
           html += `<th style="white-space:normal;word-break:break-word;">⏳ ${translations[currentLang]["duration"]}</th>`;
         }
-        if (quantityEnabled) { // إذا كانت الكمية مفعلة
+        if (quantityEnabled) {
           html += `<th style="white-space:normal;word-break:break-word;">🔢 ${translations[currentLang]["quantity"]}</th>`;
         }
-        if (inputType === "manual") { // إذا كان إدخال التواريخ يدوياً
+        if (inputType === "manual") {
           html += `
             <th style="white-space:normal;word-break:break-word;">🏭 ${translations[currentLang].prodDate}</th>
             <th style="white-space:normal;word-break:break-word;">📅 ${translations[currentLang].expDate}</th>
@@ -357,13 +387,13 @@
         products.forEach((prod, idx) => {
           html += `<tr id="prodRow${idx}">
             <td>${currentLang === "ar" ? prod.Product_Name_AR : prod.Product_Name_EN}</td>`;
-          if (inputType === "quantity") { // إذا كانت المدة تلقائية
+          if (inputType === "quantity") {
             html += `<td>⏳ ${prod.Preparation_Duration || ""}</td>`;
           }
-          if (quantityEnabled) { // إذا كانت الكمية مفعلة
+          if (quantityEnabled) {
             html += `<td><input type="number" min="1" class="form-control" id="qty${idx}" placeholder="🔢" /></td>`;
           }
-          if (inputType === "manual") { // إذا كان إدخال التواريخ يدوياً
+          if (inputType === "manual") {
             html += `
               <td><input type="date" class="form-control" id="prodDate${idx}" lang="en" /></td>
               <td><input type="date" class="form-control" id="expDate${idx}" lang="en" onchange="updateRemaining(${idx})" /></td>
@@ -384,13 +414,13 @@
 
     // دالة تحويل التاريخ من صيغة yyyy-mm-dd إلى صيغة كاملة حسب اللغة
     function formatFullDate(dateStr, lang) {
-      const d = new Date(dateStr + "T12:00:00"); // إضافة وقت لتجنب مشاكل التوقيت الصيفي/الشتاء
+      const d = new Date(dateStr + "T12:00:00");
       return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
     }
 
-    // دالة حساب وعرض الوقت المتبقي (أيام، ساعات، دقائق، ثواني)
+    // دالة حساب وعرض الوقت المتبقي
     window.updateRemaining = function(idx) {
       const expDateInput = document.getElementById('expDate'+idx);
       const remainingCell = document.getElementById('remaining'+idx);
@@ -399,7 +429,7 @@
       if (!expDateValue) { remainingCell.textContent = "-"; return; }
 
       const now = new Date();
-      const exp = new Date(expDateValue + "T23:59:59"); // يضاف 23:59:59 لجعل تاريخ الانتهاء يشمل اليوم بالكامل
+      const exp = new Date(expDateValue + "T23:59:59");
       let remainingMs = exp - now;
 
       if (remainingMs < 0) {
@@ -423,8 +453,7 @@
 
       remainingCell.textContent = textParts.join(" ").trim();
       if (remainingCell.textContent === "") remainingCell.textContent = currentLang === "ar" ? "أقل من ثانية" : "< 1 sec";
-  }
-
+    }
 
     // إضافة مؤقت من الجدول
     window.addTimerFromTable = function(section, idx) {
@@ -438,7 +467,7 @@
       let inputType = getSectionInputType(selectedSection);
       let quantityEnabled = getSectionQuantityEnabled(selectedSection);
 
-      let qty = 1; // القيمة الافتراضية للكمية إذا لم يتم تمكينها
+      let qty = 1;
       if (quantityEnabled) {
         const qtyInput = document.getElementById('qty'+idx);
         qty = parseInt(qtyInput.value);
@@ -451,7 +480,7 @@
       }
 
       let prodDateValue = "", expDateValue = "", prodDateFull = "", expDateFull = "", remainingText = "";
-      let expirationTimeMs = 0; // سيتم تعيينها لاحقًا
+      let expirationTimeMs = 0;
 
       if (inputType === "manual") {
         prodDateValue = document.getElementById('prodDate'+idx).value;
@@ -466,32 +495,31 @@
         expDateFull = formatFullDate(expDateValue, currentLang);
 
         const expDateObj = new Date(expDateValue + "T23:59:59");
-        expirationTimeMs = expDateObj.getTime(); // وقت الانتهاء من التاريخ المدخل يدوياً
+        expirationTimeMs = expDateObj.getTime();
 
-        // حساب الوقت المتبقي للعرض في السجل
         const now = new Date();
         let currentRemainingMs = expDateObj.getTime() - now.getTime();
         if (currentRemainingMs < 0) {
           remainingText = currentLang === "ar" ? "منتهي" : "Expired";
         } else {
-            let days = Math.floor(currentRemainingMs / (1000 * 60 * 60 * 24));
-            currentRemainingMs %= (1000 * 60 * 60 * 24);
-            let hours = Math.floor(currentRemainingMs / (1000 * 60 * 60));
-            currentRemainingMs %= (1000 * 60 * 60);
-            let mins = Math.floor(currentRemainingMs / (1000 * 60));
-            currentRemainingMs %= (1000 * 60);
-            let secs = Math.floor(currentRemainingMs / 1000);
+          let days = Math.floor(currentRemainingMs / (1000 * 60 * 60 * 24));
+          currentRemainingMs %= (1000 * 60 * 60 * 24);
+          let hours = Math.floor(currentRemainingMs / (1000 * 60 * 60));
+          currentRemainingMs %= (1000 * 60 * 60);
+          let mins = Math.floor(currentRemainingMs / (1000 * 60));
+          currentRemainingMs %= (1000 * 60);
+          let secs = Math.floor(currentRemainingMs / 1000);
 
-            let textParts = [];
-            if (days > 0) textParts.push(`${days} ${currentLang === "ar" ? "يوم" : "day"}${days > 1 && currentLang === "en" ? "s" : ""}`);
-            if (hours > 0) textParts.push(`${hours} ${currentLang === "ar" ? "ساعة" : "hr"}`);
-            if (mins > 0) textParts.push(`${mins} ${currentLang === "ar" ? "دقيقة" : "min"}`);
-            if (secs > 0) textParts.push(`${secs} ${currentLang === "ar" ? "ثانية" : "sec"}`);
-            
-            remainingText = textParts.join(" ").trim();
-            if (remainingText === "") remainingText = currentLang === "ar" ? "أقل من ثانية" : "< 1 sec";
+          let textParts = [];
+          if (days > 0) textParts.push(`${days} ${currentLang === "ar" ? "يوم" : "day"}${days > 1 && currentLang === "en" ? "s" : ""}`);
+          if (hours > 0) textParts.push(`${hours} ${currentLang === "ar" ? "ساعة" : "hr"}`);
+          if (mins > 0) textParts.push(`${mins} ${currentLang === "ar" ? "دقيقة" : "min"}`);
+          if (secs > 0) textParts.push(`${secs} ${currentLang === "ar" ? "ثانية" : "sec"}`);
+          
+          remainingText = textParts.join(" ").trim();
+          if (remainingText === "") remainingText = currentLang === "ar" ? "أقل من ثانية" : "< 1 sec";
         }
-      } else { // المدة تلقائية (quantity only input type)
+      } else {
         const preparedTime = Date.now();
         const duration = parseFloat(prod.Preparation_Duration) || 1;
         expirationTimeMs = preparedTime + duration * 3600000;
@@ -508,13 +536,13 @@
         product: currentLang === "ar" ? prod.Product_Name_AR : prod.Product_Name_EN,
         product_ar: prod.Product_Name_AR || "",
         product_en: prod.Product_Name_EN || "",
-        duration: prod.Preparation_Duration || "", // المدة الأساسية
+        duration: prod.Preparation_Duration || "",
         quantity: qty,
-        preparedTime: new Date().getTime(), // وقت الإضافة الفعلي
-        expirationTime: expirationTimeMs, // وقت الانتهاء المحسوب أو المدخل
-        productionDate: prodDateFull, // تاريخ الإنتاج (تنسيق كامل)
-        expiryDate: expDateFull, // تاريخ الانتهاء (تنسيق كامل)
-        remaining: remainingText // الوقت المتبقي (للتصدير)
+        preparedTime: new Date().getTime(),
+        expirationTime: expirationTimeMs,
+        productionDate: prodDateFull,
+        expiryDate: expDateFull,
+        remaining: remainingText
       };
       timers.push(timerObj);
       localStorage.setItem('timers', JSON.stringify(timers));
@@ -528,13 +556,13 @@
         Preparation_Duration: prod.Preparation_Duration || "",
         Time_Unit: prod.Time_Unit || "",
         Quantity: qty,
-        Product_Time: prodDateFull, // استخدام التاريخ المنسق
-        Expiry_Time: expDateFull, // استخدام التاريخ المنسق
-        Remaining: remainingText, // استخدام الوقت المتبقي المنسق
+        Product_Time: prodDateFull,
+        Expiry_Time: expDateFull,
+        Remaining: remainingText,
         User: localStorage.getItem("username") || "User"
       }];
 
-      fetch("https://script.google.com/macros/s/AKfycbyVSSPlJFT1ru3OWoOlqDzRr6lhBeiphl8GsMmN96kSPO_v5vtW28vQ-0O1LGLHDJTG/exec?action=addTimers", {
+      fetch(`${API_URL}?action=addTimers`, {
         method: "POST",
         body: JSON.stringify(exportData),
         headers: {"Content-Type": "application/json"}
@@ -555,9 +583,7 @@
       });
 
       document.getElementById('prodRow'+idx).style.display = 'none';
-      // لا تنتظر 3 ثواني قبل التحويل
-      
-    };
+    }
 
     // إعدادات القسم - نافذة منسقة
     function showSectionSettings(section, emoji) {
@@ -601,24 +627,47 @@
         showAppMessage(currentLang === "ar" ? "تم حفظ إعدادات القسم" : "Section settings saved", "success");
       };
     }
+
     window.closeSectionSettings = function() {
       document.getElementById('sectionSettingsContainer').style.display = 'none';
       showCategoryButtonsContainer();
     }
+
     function hideCategoryButtonsContainer() {
       const container = document.querySelector('.category-bar-container');
       container.classList.remove('visible');
       container.classList.add('hidden');
       document.getElementById('productsTableContainer').style.display = 'block';
-      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].showSections;
+      const toggleBtnSpan = document.getElementById('toggleCategoriesBtn').querySelector('span[data-key="showSections"]');
+      if (toggleBtnSpan) toggleBtnSpan.textContent = translations[currentLang].showSections;
     }
+
     function showCategoryButtonsContainer() {
       const container = document.querySelector('.category-bar-container');
       container.classList.remove('hidden');
       container.classList.add('visible');
       document.getElementById('productsTableContainer').style.display = 'none';
-      document.getElementById('toggleCategoriesBtn').querySelector('span').textContent = translations[currentLang].hideSections;
+      const toggleBtnSpan = document.getElementById('toggleCategoriesBtn').querySelector('span[data-key="showSections"]');
+      if (toggleBtnSpan) toggleBtnSpan.textContent = translations[currentLang].hideSections;
     }
+
+    function showAppMessage(msg, type = "success") {
+      const el = document.getElementById(type === "success" ? "successMsg" : "errorMsg");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 2500);
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      applyLanguage(currentLang);
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      loadProductsAndSections();
+      renderCategoryButtons();
+      renderProductsTable();
+    });
+
     document.getElementById('toggleCategoriesBtn').addEventListener('click', () => {
       const container = document.querySelector('.category-bar-container');
       if (container.classList.contains('visible')) {
@@ -627,13 +676,16 @@
         showCategoryButtonsContainer();
       }
     });
+
     document.getElementById("productSearchInput").addEventListener("input", function() {
       currentSearch = this.value.trim();
       renderProductsTable();
     });
+
     document.getElementById("hamburgerBtn").addEventListener("click", () => {
       document.querySelector(".sidebar").classList.toggle("open");
     });
+
     document.addEventListener("click", (e) => {
       const sidebar = document.querySelector(".sidebar");
       const hamburgerBtn = document.getElementById("hamburgerBtn");
@@ -641,6 +693,7 @@
         sidebar.classList.remove("open");
       }
     });
+
     document.getElementById("langToggle").addEventListener("click", () => {
       currentLang = currentLang === "ar" ? "en" : "ar";
       localStorage.setItem("appLang", currentLang);
@@ -649,31 +702,6 @@
       renderProductsTable();
       updateDateTime();
     });
-    function showAppMessage(msg, type = "success") {
-      const el = document.getElementById("successMsg");
-      el.textContent = msg;
-      el.style.display = "block";
-      setTimeout(() => { el.style.display = "none"; }, 2500);
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-      applyLanguage(currentLang);
-      updateDateTime();
-      setInterval(updateDateTime, 60000);
-      loadProductsAndSections();
-      renderCategoryButtons();
-      renderProductsTable();
-	  // تأكيد وجود أقسام
-if (!allSections || allSections.length === 0) {
-  allSections = [...new Set(allProducts.map(p => ({
-    ar: p.Section_AR || p.Section,
-    en: p.Section || p.Section_AR
-  })))];
-
-  localStorage.setItem("productSections", JSON.stringify(allSections));
-}
-
-    });
-	
   </script>
 </body>
 </html>
